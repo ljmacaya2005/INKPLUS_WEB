@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>INKPlus — Session Management</title>
+    <link rel="icon" type="image/x-icon" href="images/logo2.png">
+
+    <!-- Bootstrap 5.3.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/sessions.css">
+
+    <script src="js/sweetalert2.all.min.js"></script>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.replace('index.html');
+        }
+    </script>
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar sidebar-glass shadow-lg" id="sidebar">
+            <div class="sidebar-brand p-4 text-center">
+                <a href="home.html">
+                    <img src="images/logo1.png" alt="INKPlus Logo" class="img-fluid" style="max-width: 180px;">
+                </a>
+            </div>
+
+            <nav class="sidebar-nav mt-3">
+                <ul class="nav flex-column px-3">
+                    <li class="nav-item">
+                        <a href="home.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="scheduling.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Schedule Tickets</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span>View Jobs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="history.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>Archives</span>
+                        </a>
+                    </li>
+
+                    <hr class="sidebar-divider mx-3 my-4 opacity-10">
+
+                    <li class="nav-item">
+                        <a href="sessions.html" class="nav-link active">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Session Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="actions.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            <span>Audit Logs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content flex-grow-1">
+            <header class="dashboard-header animate__animated animate__fadeInDown px-4 py-3 border-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-info me-3 d-lg-none" id="mobileNavToggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h2 class="mb-0 fw-bold">Session Management</h2>
+                        <p class="text-secondary small mb-0">Real-time connectivity monitoring</p>
+                    </div>
+                </div>
+
+                <div class="user-profile d-flex align-items-center">
+                    <a href="profile.html" class="d-flex align-items-center text-decoration-none text-main">
+                        <span class="me-2 d-none d-sm-inline fw-medium">Administrator</span>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=4A90A4&color=fff" alt="User"
+                            class="rounded-circle shadow-sm" width="40">
+                    </a>
+                </div>
+            </header>
+
+            <div class="container-fluid px-4 py-2">
+                <div class="row g-3 mb-4 animate__animated animate__fadeIn">
+                    <div class="col-md-4">
+                        <div class="session-stat-card p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-secondary smaller fw-bold text-uppercase">Total Active</div>
+                                    <div class="h3 fw-bold mb-0">02</div>
+                                </div>
+                                <div class="stat-icon bg-info-soft">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="session-stat-card p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-secondary smaller fw-bold text-uppercase">Peak Today</div>
+                                    <div class="h3 fw-bold mb-0">08</div>
+                                </div>
+                                <div class="stat-icon bg-success-soft">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                        <polyline points="16 7 22 7 22 13" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="session-stat-card p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-secondary smaller fw-bold text-uppercase">Incidents</div>
+                                    <div class="h3 fw-bold mb-0 text-danger">00</div>
+                                </div>
+                                <div class="stat-icon bg-danger-soft">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                        <line x1="12" y1="9" x2="12" y2="13" />
+                                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card p-0 overflow-hidden animate__animated animate__fadeInUp bg-glass-main">
+                    <div
+                        class="p-4 border-bottom border-light border-opacity-10 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Authenticated Entry Points</h5>
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-4" id="terminateAllBtn">Purge All
+                            Sessions</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table session-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Identity</th>
+                                    <th>Network Address</th>
+                                    <th>Interface Agent</th>
+                                    <th>Last Intercept</th>
+                                    <th class="pe-4 text-end">Control</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="current-session-row">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="session-avatar me-3">AD</div>
+                                            <div>
+                                                <div class="fw-bold h6 mb-0">Administrator</div>
+                                                <div class="small text-secondary">admin@inkplus.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><code class="text-primary fw-bold">192.168.1.1</code></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <svg class="me-2 text-secondary" width="16" height="16" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                                <line x1="8" y1="21" x2="16" y2="21" />
+                                                <line x1="12" y1="17" x2="12" y2="21" />
+                                            </svg>
+                                            <span class="small">Windows Desktop • Chrome 121</span>
+                                        </div>
+                                    </td>
+                                    <td><span
+                                            class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Active
+                                            Now</span></td>
+                                    <td class="pe-4 text-end">
+                                        <span class="text-success small fw-bold">PERSISTENT</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="session-avatar me-3 bg-info">SM</div>
+                                            <div>
+                                                <div class="fw-bold h6 mb-0">Staff Member</div>
+                                                <div class="small text-secondary">staff@inkplus.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><code class="text-secondary fw-bold">192.168.1.45</code></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <svg class="me-2 text-secondary" width="16" height="16" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                                                <line x1="12" y1="18" x2="12.01" y2="18" />
+                                            </svg>
+                                            <span class="small">Android Mobile • Edge</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="small text-secondary fw-medium">15m 24s ago</span></td>
+                                    <td class="pe-4 text-end">
+                                        <button
+                                            class="btn btn-sm btn-outline-danger border-0 hover-lift terminate-btn">Disconnect</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Glass Dock Quick Actions -->
+    <div class="glass-dock">
+        <div class="dock-content">
+            <button class="dock-btn" id="dockFull" title="Fullscreen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+            </button>
+            <div class="dock-separator"></div>
+            <button class="dock-btn" id="fabRefresh" title="Refresh Page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+            </button>
+            <div class="dock-separator"></div>
+            <div class="dock-theme-wrapper">
+                <button class="dock-btn" id="quick-theme-btn" title="Theme">
+                    <!-- Icon injected by JS -->
+                </button>
+                <div class="dock-theme-menu">
+                    <button class="dock-theme-item" data-theme-value="light"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg></button>
+                    <button class="dock-theme-item" data-theme-value="dark"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg></button>
+                    <button class="dock-theme-item" data-theme-value="auto"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js?v=2.0"></script>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/color-modes.js?v=2.0" defer></script>
+    <script src="js/dashboard.js?v=2.0" defer></script>
+    <script src="js/settings.js?v=2.0" defer></script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+/* Control Center Settings Styling */
+.settings-glass-container {
+    background: rgba(var(--card-bg-rgb), 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 600px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2) !important;
+}
+
+.bg-glass-side {
+    background: rgba(var(--sidebar-bg-rgb), 0.3);
+}
+
+.bg-glass-content {
+    background: transparent;
+}
+
+/* Vertical Nav Pills */
+.settings-nav {
+    gap: 8px;
+}
+
+.settings-nav .nav-link {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: var(--text-main);
+    opacity: 0.6;
+    font-weight: 500;
+    transition: all 0.3s;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+
+.settings-nav .nav-link:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.settings-nav .nav-link.active {
+    opacity: 1;
+    background: rgba(74, 144, 164, 0.1) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(74, 144, 164, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Premium Switches */
+.form-switch-premium .form-check-input {
+    width: 44px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.form-switch-premium .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Glass Inputs */
+.bg-glass-input {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-main) !important;
+}
+
+.bg-glass-input:focus {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Alert Variations */
+.alert-info-soft {
+    background: rgba(107, 179, 199, 0.1);
+    color: #6BB3C7;
+}
+
+.alert-danger-soft {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Transitions */
+.tab-pane.active {
+    animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 991px) {
+    .bg-glass-side {
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}

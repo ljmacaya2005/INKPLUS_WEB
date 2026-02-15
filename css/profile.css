@@ -1,0 +1,294 @@
+html {
+    scrollbar-gutter: stable;
+    /* Best modern fix for layout shift */
+}
+
+body {
+    background-color: var(--bg-main);
+}
+
+/* High-End Profile Styling */
+.profile-banner {
+    height: 220px;
+    background: linear-gradient(135deg, #4A90A4 0%, #2c5364 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/cubes.png');
+    opacity: 0.15;
+}
+
+.profile-content-overlap {
+    margin-top: -80px;
+    position: relative;
+    z-index: 10;
+    padding-bottom: 3rem;
+}
+
+@media (max-width: 991px) {
+    .profile-content-overlap {
+        margin-top: -60px;
+    }
+}
+
+/* Main Profile Card */
+.profile-main-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.profile-header-gradient {
+    background: linear-gradient(180deg, rgba(74, 144, 164, 0.9) 0%, rgba(30, 41, 59, 1) 100%);
+    padding: 3rem 1.5rem !important;
+}
+
+.profile-avatar-large {
+    width: 160px;
+    height: 160px;
+    position: relative;
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #1E293B;
+}
+
+.bg-glass-card {
+    background: rgba(var(--card-bg-rgb), 0.75);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+}
+
+.bg-glass-card .list-group-item {
+    border-color: var(--glass-border) !important;
+    color: var(--text-main);
+}
+
+.icon-shape {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bg-primary-soft {
+    background: rgba(74, 144, 164, 0.15);
+    color: #4A90A4;
+}
+
+.bg-info-soft {
+    background: rgba(107, 179, 199, 0.15);
+    color: #6BB3C7;
+}
+
+.smaller {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Stats Colors */
+#statTasks,
+#statSessions {
+    color: var(--text-main);
+}
+
+.bg-glass-card .text-secondary {
+    color: var(--text-muted) !important;
+}
+
+.bg-glass-card .fw-semibold {
+    color: var(--text-main);
+}
+
+/* Stability overrides */
+.main-content {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Tabs Styling */
+.profile-tabs .nav-link {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-main);
+    opacity: 0.6;
+    font-weight: 600;
+    margin: 0 1.5rem 0 0 !important;
+    padding: 1.5rem 0 !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.3s;
+}
+
+.profile-tabs .nav-link:hover {
+    opacity: 1;
+}
+
+.profile-tabs .nav-link.active {
+    opacity: 1;
+    border-bottom-color: var(--primary-color) !important;
+    color: var(--primary-color);
+}
+
+/* Forms Customization */
+.form-floating-custom {
+    position: relative;
+}
+
+.form-label {
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.5px;
+    color: var(--text-main);
+    opacity: 0.8;
+}
+
+.form-control {
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 0.85rem 1.1rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    background: rgba(var(--primary-rgb, 74, 144, 164), 0.05);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(74, 144, 164, 0.15);
+    color: var(--text-main);
+}
+
+.form-control:disabled {
+    background: rgba(var(--card-bg-rgb), 0.4);
+    opacity: 0.6;
+    border-style: dashed;
+}
+
+/* Stability Fixes */
+.tab-content {
+    min-height: 520px;
+    background: transparent;
+}
+
+.tab-pane {
+    animation: fadeIn 0.2s ease-out;
+    width: 100%;
+}
+
+/* Force symmetry between tabs */
+.tab-pane .row {
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+}
+
+.tab-pane [class^="col-"] {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+.form-group {
+    padding: 0;
+}
+
+.main-content {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.form-group {
+    padding: 0;
+}
+
+/* Security & Privacy Refinements */
+
+/* Security & Privacy Refinements */
+.security-item {
+    transition: all 0.3s ease;
+}
+
+.security-action-card {
+    background: rgba(var(--card-bg-rgb), 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border) !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.security-action-card:hover {
+    background: rgba(var(--card-bg-rgb), 0.6);
+    border-color: rgba(var(--primary-rgb, 74, 144, 164), 0.3) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.bg-warning-soft {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.w-100-mobile {
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 576px) {
+    .w-100-mobile {
+        width: 100%;
+    }
+
+    .security-action-card {
+        padding: 1.5rem !important;
+    }
+}
+
+/* Integrity Section Alignment */
+.security-section .list-group-item {
+    border-color: var(--glass-border) !important;
+    padding: 1.5rem 0.5rem !important;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    margin-bottom: 5px;
+    color: var(--text-main);
+}
+
+.security-section .list-group-item:hover {
+    background: rgba(var(--card-bg-rgb), 0.2);
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+.form-check-switch {
+    transform: scale(1.2);
+    cursor: pointer;
+}

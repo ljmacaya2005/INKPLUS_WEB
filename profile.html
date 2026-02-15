@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>INKPlus — My Profile</title>
+    <link rel="icon" type="image/x-icon" href="images/logo2.png">
+
+    <!-- Bootstrap 5.3.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/profile.css">
+
+    <script src="js/sweetalert2.all.min.js"></script>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.replace('index.html');
+        }
+    </script>
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar sidebar-glass shadow-lg" id="sidebar">
+            <div class="sidebar-brand p-4 text-center">
+                <a href="home.html">
+                    <img src="images/logo1.png" alt="INKPlus Logo" class="img-fluid" style="max-width: 180px;">
+                </a>
+            </div>
+
+            <nav class="sidebar-nav mt-3">
+                <ul class="nav flex-column px-3">
+                    <li class="nav-item">
+                        <a href="home.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="scheduling.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Scheduling</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span>View Jobs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="history.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>History</span>
+                        </a>
+                    </li>
+
+                    <hr class="sidebar-divider mx-3 my-4 opacity-10">
+
+                    <li class="nav-item">
+                        <a href="sessions.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Sessions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="actions.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            <span>Audit Log</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content flex-grow-1 p-0 overflow-hidden">
+            <!-- Profile Banner -->
+            <div class="profile-banner animate__animated animate__fadeIn">
+                <div class="banner-overlay"></div>
+                <div class="banner-content px-4 py-5 text-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <button class="btn btn-outline-light me-3 d-lg-none" id="mobileNavToggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                        <h2 class="mb-0 fw-bold">My Account</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid px-4 profile-content-overlap">
+                <div class="row g-4">
+                    <!-- Profile Card -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div
+                            class="dashboard-card profile-main-card p-0 overflow-hidden animate__animated animate__fadeInUp">
+                            <div class="profile-header-gradient p-4 text-center text-white">
+                                <div class="profile-avatar-large mb-3 mx-auto shadow-lg">
+                                    <img src="https://ui-avatars.com/api/?name=User&background=4A90A4&color=fff&size=180"
+                                        alt="Profile Large" class="rounded-circle border border-4 border-white-50"
+                                        id="userAvatar">
+                                </div>
+                                <h3 class="fw-bold mb-1" id="userNameDisplay">Loading...</h3>
+                                <p class="text-white-50 small fw-medium mb-0" id="userRoleDisplay">INKPlus User</p>
+                            </div>
+
+                            <div class="p-4 bg-glass-card">
+                                <div class="row g-2 text-center mb-4">
+                                    <div class="col-6">
+                                        <div
+                                            class="p-2 rounded bg-primary bg-opacity-10 border border-primary border-opacity-10">
+                                            <div class="h4 fw-bold mb-0" id="statTasks">--</div>
+                                            <div class="text-secondary smaller">Tasks Done</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div
+                                            class="p-2 rounded bg-info bg-opacity-10 border border-info border-opacity-10">
+                                            <div class="h4 fw-bold mb-0" id="statSessions">--</div>
+                                            <div class="text-secondary smaller">Active Sessions</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="list-group list-group-flush border-0 mb-4">
+                                    <div class="list-group-item bg-transparent px-0 py-3 border-opacity-10">
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-shape bg-primary-soft me-3">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <path
+                                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                                    <polyline points="22,6 12,13 2,6" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="small text-secondary">Email address</div>
+                                                <div class="fw-semibold" id="userEmailDisplay">--</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item bg-transparent px-0 py-3 border-opacity-10">
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-shape bg-info-soft me-3">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <path
+                                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="small text-secondary">Contact Number</div>
+                                                <div class="fw-semibold" id="userPhoneDisplay">--</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-outline-danger w-100 rounded-pill btn-sm" id="signOutBtn">
+                                    Logout Session
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Form -->
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="dashboard-card p-0 overflow-hidden animate__animated animate__fadeInRight">
+                            <ul class="nav nav-tabs profile-tabs px-4 border-bottom border-light border-opacity-10"
+                                id="profileTabs" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active py-3" id="details-tab" data-bs-toggle="tab"
+                                        data-bs-target="#details" type="button" role="tab">Personal Details</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link py-3" id="security-tab" data-bs-toggle="tab"
+                                        data-bs-target="#security" type="button" role="tab">Security & Privacy</button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content px-0" id="profileTabsContent">
+                                <div class="tab-pane fade show active" id="details" role="tabpanel">
+                                    <div class="p-4 p-md-5">
+                                        <form id="profileForm">
+                                            <div class="d-flex flex-column gap-4">
+                                                <div class="row g-4">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-0">
+                                                            <label
+                                                                class="form-label fw-bold small text-uppercase opacity-75">First
+                                                                Name</label>
+                                                            <input type="text" class="form-control"
+                                                                id="profileFirstName" placeholder="First Name">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-0">
+                                                            <label
+                                                                class="form-label fw-bold small text-uppercase opacity-75">Last
+                                                                Name</label>
+                                                            <input type="text" class="form-control" id="profileLastName"
+                                                                placeholder="Last Name">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group mb-0">
+                                                    <label
+                                                        class="form-label fw-bold small text-uppercase opacity-75">Email
+                                                        Address</label>
+                                                    <input type="email" class="form-control" id="profileEmail"
+                                                        placeholder="Email Address" readonly disabled>
+                                                </div>
+
+                                                <div class="form-group mb-0">
+                                                    <label
+                                                        class="form-label fw-bold small text-uppercase opacity-75">Phone
+                                                        Number</label>
+                                                    <input type="tel" class="form-control" id="profilePhone"
+                                                        placeholder="+1 (555) 000-0000">
+                                                </div>
+
+                                                <div class="form-group mb-0">
+                                                    <label
+                                                        class="form-label fw-bold small text-uppercase opacity-75">Bio /
+                                                        Description</label>
+                                                    <textarea class="form-control" id="profileBio" rows="4"
+                                                        placeholder="Write something about yourself..."></textarea>
+                                                </div>
+
+                                                <div class="mt-2 text-start">
+                                                    <button type="submit"
+                                                        class="btn btn-primary px-5 py-2 fw-semibold rounded-pill shadow-lg">Save
+                                                        Profile Changes</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="security" role="tabpanel">
+                                    <div class="p-4 p-md-5">
+                                        <div class="security-item mb-5">
+                                            <div class="security-item mb-5">
+                                                <div class="d-flex align-items-center mb-4">
+                                                    <div class="icon-shape bg-info-soft me-3 p-2">
+                                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <path
+                                                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                                            <polyline points="22,6 12,13 2,6" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="fw-bold mb-0">Email Address</h5>
+                                                        <p class="text-secondary small mb-0" id="currentEmailStatus">
+                                                            Verified
+                                                            Primary Email</p>
+                                                    </div>
+                                                </div>
+                                                <div class="security-action-card p-4 rounded-4 border">
+                                                    <div class="row g-3 align-items-center">
+                                                        <div class="col-lg-8 col-md-7">
+                                                            <p class="mb-0 fw-medium opacity-75">Keep your login email
+                                                                up to
+                                                                date
+                                                                for account notifications and secure access.</p>
+                                                        </div>
+                                                        <div class="col-lg-4 col-md-5 text-md-end">
+                                                            <button
+                                                                class="btn btn-info px-4 py-2 text-white rounded-pill w-100-mobile"
+                                                                id="changeEmailBtn">Change Email</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="security-item mb-5">
+                                                <div class="d-flex align-items-center mb-4">
+                                                    <div class="icon-shape bg-warning-soft me-3 p-2">
+                                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="fw-bold mb-0">Password Rotation</h5>
+                                                        <p class="text-secondary small mb-0">Protect your account with
+                                                            regular
+                                                            updates</p>
+                                                    </div>
+                                                </div>
+                                                <div class="security-action-card p-4 rounded-4 border">
+                                                    <div class="row g-3 align-items-center">
+                                                        <div class="col-lg-8 col-md-7">
+                                                            <p class="mb-0 fw-medium opacity-75">Maintain account
+                                                                integrity by
+                                                                rotating your password regularly.</p>
+                                                        </div>
+                                                        <div class="col-lg-4 col-md-5 text-md-end">
+                                                            <button
+                                                                class="btn btn-warning px-4 py-2 rounded-pill w-100-mobile"
+                                                                id="changePassBtn">Change Password</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="security-section">
+                                                <h5 class="fw-bold mb-4">Account Integrity</h5>
+                                                <div class="list-group list-group-flush bg-transparent">
+                                                    <div
+                                                        class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-opacity-10">
+                                                        <div>
+                                                            <div class="fw-semibold">Two-Factor Authentication</div>
+                                                            <div class="small text-secondary">Adds an extra layer of
+                                                                security to
+                                                                your account.</div>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" checked>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-0">
+                                                        <div>
+                                                            <div class="fw-semibold">Device Management</div>
+                                                            <div class="small text-secondary">Review all active sessions
+                                                                across
+                                                                your devices.</div>
+                                                        </div>
+                                                        <a href="sessions.html"
+                                                            class="btn btn-sm btn-outline-info rounded-pill px-3">View
+                                                            Sessions</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Glass Dock Quick Actions -->
+    <div class="glass-dock">
+        <div class="dock-content">
+            <button class="dock-btn" id="dockFull" title="Fullscreen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+            </button>
+            <div class="dock-separator"></div>
+            <button class="dock-btn" id="fabRefresh" title="Refresh Page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+            </button>
+            <div class="dock-separator"></div>
+            <div class="dock-theme-wrapper">
+                <button class="dock-btn" id="quick-theme-btn" title="Theme">
+                    <!-- Icon injected by JS -->
+                </button>
+                <div class="dock-theme-menu">
+                    <button class="dock-theme-item" data-theme-value="light"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg></button>
+                    <button class="dock-theme-item" data-theme-value="dark"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg></button>
+                    <button class="dock-theme-item" data-theme-value="auto"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js?v=2.0"></script>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/color-modes.js?v=2.0" defer></script>
+    <script src="js/profile.js?v=2.0" defer></script>
+</body>
+
+</html>
