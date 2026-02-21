@@ -1,0 +1,51 @@
+/* history.css - History Page Specific Styles */
+.search-box-premium {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    color: var(--primary-color);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.search-box-premium .form-control {
+    padding-left: 45px;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-main) !important;
+    transition: all 0.3s ease;
+}
+
+.search-box-premium .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.search-box-premium .form-control:focus {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 164, 0.3) !important;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .search-box-premium .form-control {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #1a1a1a !important;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .search-box-premium .form-control::placeholder {
+    color: rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="light"] .search-box-premium .form-control:focus {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}

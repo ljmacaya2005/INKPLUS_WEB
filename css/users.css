@@ -78,3 +78,122 @@
     opacity: 1;
     color: var(--primary-color);
 }
+
+/* --- Tabs: Sliding Toggle (Matching Profile) --- */
+.nav-pills-slider {
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+    padding: 4px;
+    display: inline-flex;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-pills-slider .nav-item {
+    z-index: 2;
+    position: relative;
+}
+
+.nav-pills-slider .nav-link {
+    color: var(--text-muted);
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 0.6rem 1.5rem;
+    background: transparent !important;
+    transition: color 0.3s ease;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.nav-pills-slider .nav-link:hover {
+    color: var(--text-main);
+}
+
+.nav-pills-slider .nav-link.active {
+    color: white;
+}
+
+.slider-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(135deg, #4A90A4 0%, #3b7d92 100%);
+    border-radius: 50px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 1;
+    box-shadow: 0 2px 10px rgba(74, 144, 164, 0.3);
+}
+
+/* --- Role Management Section --- */
+.role-config-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.role-config-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.permission-check {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.permission-check:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.permission-check .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* --- Table Highlights --- */
+.request-badge {
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.badge-urgent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .nav-pills-slider {
+        width: 100%;
+        flex-direction: column;
+        border-radius: 12px;
+        padding: 6px;
+    }
+
+    .nav-pills-slider .nav-item {
+        width: 100%;
+    }
+
+    .nav-pills-slider .nav-link {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 2px;
+    }
+
+    .slider-indicator {
+        border-radius: 8px;
+    }
+}

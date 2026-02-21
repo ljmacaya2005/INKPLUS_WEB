@@ -5,14 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>INKPlus — Session Management</title>
-    <link rel="icon" type="image/x-icon" href="images/logo2.png">
+    <link rel="icon" type="image/x-icon" href="assets/logo2.png">
 
     <!-- Bootstrap 5.3.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/fonts.css" rel="stylesheet">
     <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="css/animate.min.css" />
 
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/dashboard.css">
@@ -33,7 +33,7 @@
         <aside class="sidebar sidebar-glass shadow-lg" id="sidebar">
             <div class="sidebar-brand p-4 text-center">
                 <a href="home.html">
-                    <img src="images/logo1.png" alt="INKPlus Logo" class="img-fluid" style="max-width: 180px;">
+                    <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid" style="max-width: 180px;">
                 </a>
             </div>
 
@@ -170,7 +170,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-secondary smaller fw-bold text-uppercase">Total Active</div>
-                                    <div class="h3 fw-bold mb-0">02</div>
+                                    <div class="h3 fw-bold mb-0" id="totalActiveStat">--</div>
                                 </div>
                                 <div class="stat-icon bg-info-soft">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -189,7 +189,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-secondary smaller fw-bold text-uppercase">Peak Today</div>
-                                    <div class="h3 fw-bold mb-0">08</div>
+                                    <div class="h3 fw-bold mb-0" id="peakTodayStat">--</div>
                                 </div>
                                 <div class="stat-icon bg-success-soft">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -206,7 +206,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-secondary smaller fw-bold text-uppercase">Incidents</div>
-                                    <div class="h3 fw-bold mb-0 text-danger">00</div>
+                                    <div class="h3 fw-bold mb-0 text-danger" id="incidentsStat">--</div>
                                 </div>
                                 <div class="stat-icon bg-danger-soft">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -241,61 +241,12 @@
                                     <th class="pe-4 text-end">Control</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="current-session-row">
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="session-avatar me-3">AD</div>
-                                            <div>
-                                                <div class="fw-bold h6 mb-0">Administrator</div>
-                                                <div class="small text-secondary">admin@inkplus.com</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><code class="text-primary fw-bold">192.168.1.1</code></td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <svg class="me-2 text-secondary" width="16" height="16" viewBox="0 0 24 24"
-                                                fill="none" stroke="currentColor" stroke-width="2">
-                                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                                                <line x1="8" y1="21" x2="16" y2="21" />
-                                                <line x1="12" y1="17" x2="12" y2="21" />
-                                            </svg>
-                                            <span class="small">Windows Desktop • Chrome 121</span>
-                                        </div>
-                                    </td>
-                                    <td><span
-                                            class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Active
-                                            Now</span></td>
-                                    <td class="pe-4 text-end">
-                                        <span class="text-success small fw-bold">PERSISTENT</span>
-                                    </td>
-                                </tr>
+                            <tbody id="sessionsTableBody">
                                 <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="session-avatar me-3 bg-info">SM</div>
-                                            <div>
-                                                <div class="fw-bold h6 mb-0">Staff Member</div>
-                                                <div class="small text-secondary">staff@inkplus.com</div>
-                                            </div>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary spinner-border-sm me-2" role="status">
                                         </div>
-                                    </td>
-                                    <td><code class="text-secondary fw-bold">192.168.1.45</code></td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <svg class="me-2 text-secondary" width="16" height="16" viewBox="0 0 24 24"
-                                                fill="none" stroke="currentColor" stroke-width="2">
-                                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                                                <line x1="12" y1="18" x2="12.01" y2="18" />
-                                            </svg>
-                                            <span class="small">Android Mobile • Edge</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="small text-secondary fw-medium">15m 24s ago</span></td>
-                                    <td class="pe-4 text-end">
-                                        <button
-                                            class="btn btn-sm btn-outline-danger border-0 hover-lift terminate-btn">Disconnect</button>
+                                        <span class="text-secondary">Syncing active interfaces from registry...</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -358,17 +309,15 @@
         </div>
     </div>
 
-    <!-- Firebase Compat -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=2.0"></script>
+
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js" defer></script>
     <script src="js/color-modes.js?v=2.0" defer></script>
-    <script src="js/dashboard.js?v=2.0" defer></script>
-    <script src="js/settings.js?v=2.0" defer></script>
+    <script src="js/dashboard.js?v=2.6" defer></script>
+    <script src="js/sessions.js?v=2.0" defer></script>
 </body>
 
 </html>

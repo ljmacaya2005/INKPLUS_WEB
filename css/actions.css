@@ -66,15 +66,43 @@
 
 .search-box-premium .form-control {
     padding-left: 45px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.2) !important;
     border-radius: 100px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+}
+
+.search-box-premium .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.search-box-premium .form-control:focus {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-color);
+    box-shadow: none;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .search-box-premium .form-control {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #1a1a1a !important;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .search-box-premium .form-control::placeholder {
+    color: #4a4a4a !important;
+}
+
+[data-theme="light"] .search-box-premium .form-control:focus {
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: #000000 !important;
 }
 
 /* Modern Table */
 .audit-table-modern thead th {
     font-size: 0.75rem;
-    text-uppercase: uppercase;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #64748b;
     font-weight: 700;
