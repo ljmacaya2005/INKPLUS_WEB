@@ -895,6 +895,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         if (error) throw error;
 
+                        // If we are deactivating the user, forcefully terminate their active sessions
+                        if (currentStatus === true) {
+                            // 1. Mark as offline visually
+                            await window.sb.from('users').update({ is_online: false }).eq('user_id', userId);
+
+                            // 2. Kill all active session records in the cloud
+                            await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('user_id', userId).is('ended_at', null);
+
+                            // The user's dashboard heartbeat (dashboard.js) will detect is_active=false 
+                            // within seconds and execute a local logout automatically.
+                        }
+
                         // Fire Telemetry Action
                         if (window.logAction) {
                             window.logAction('USER_STATUS_TOGGLED', 'user.management', { target_id: userId, new_status: currentStatus ? 'suspended' : 'active' }, 'warning');

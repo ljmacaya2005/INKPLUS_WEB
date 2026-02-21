@@ -181,6 +181,19 @@ async function handleLogin(event) {
 
 		if (error) throw error;
 
+		// --- ACCOUNT STATUS VERIFICATION ---
+		// Fetch the user's activation status before allowing entry
+		const { data: statusCheck, error: statusErr } = await window.sb
+			.from('users')
+			.select('is_active')
+			.eq('user_id', data.user.id)
+			.single();
+
+		if (statusErr || !statusCheck || statusCheck.is_active === false) {
+			await window.sb.auth.signOut();
+			throw new Error("Your account has been deactivated. Please contact an administrator.");
+		}
+
 		// Success Logic
 		localStorage.setItem('isLoggedIn', 'true');
 		localStorage.setItem('username', email); // Store email as username
