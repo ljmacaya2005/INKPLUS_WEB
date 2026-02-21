@@ -500,11 +500,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 const handleTabClose = () => {
-    // --- TEMPORARY URGENT OVERRIDE ---
-    // Globally blocking automatic termination on tab closure. Mobile browsers can fire this 
-    // randomly in the background, causing the heartbeat to execute a global logout.
-    return;
-
     // If the user is just navigating internally or refreshing the page, SKIP the offline ping!
     if (window.isNavigatingInternal) return;
 
@@ -539,6 +534,26 @@ const handleTabClose = () => {
                     'apikey': window.SUPABASE_ANON_KEY
                 },
                 body: JSON.stringify({ ended_at: new Date().toISOString() }),
+                keepalive: true
+            }).catch(() => { });
+
+            // RECORD TELEMETRY: Implicit Logout / Connection Lost
+            const urlAudit = `${window.SUPABASE_URL}/rest/v1/audit_logs`;
+            fetch(urlAudit, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': window.SUPABASE_ANON_KEY,
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    signature: 'SESSION_TERMINATED',
+                    subsystem: 'user.auth',
+                    payload: { event: 'Implicit Disconnect (Page Closed/Killed)', browser: navigator.userAgent },
+                    severity: 'info'
+                }),
                 keepalive: true
             }).catch(() => { });
         }

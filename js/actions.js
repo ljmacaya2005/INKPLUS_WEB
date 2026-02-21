@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dict = {
             'SESSION_INIT': 'User Logged In',
             'SESSION_TERMINATED': 'User Logged Out',
+            'ADMIN_FORCED_DISCONNECT': 'Revoked User Session',
+            'GLOBAL_SESSION_PURGE': 'Purged All Active Sessions',
             'PROFILE_UPDATED': 'Updated Profile Information',
             'EMAIL_UPDATED': 'Changed Account Email',
             'PASSWORD_UPDATED': 'Changed Account Password',
@@ -80,10 +82,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Core Loader
-    const loadLogs = async () => {
+    const loadLogs = async (silent = false) => {
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-main opacity-75"><div class="spinner-border spinner-border-sm me-2"></div> Loading records...</td></tr>';
+        if (!silent) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-main opacity-75"><div class="spinner-border spinner-border-sm me-2"></div> Loading records...</td></tr>';
+        }
 
         try {
             const { data: logs, error } = await window.sb
@@ -145,8 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!tbody) return;
         if (logs.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-main opacity-75 fst-italic">No records match your search criteria.</td></tr>`;
-            const footerString = document.getElementById('logMetricsCount');
-            if (footerString) footerString.innerHTML = `Showing 0 of ${allLogs.length} actions`;
+            // Count metrics display removed per instructions
             return;
         }
 
@@ -208,8 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         tbody.innerHTML = html;
-        const footerString = document.getElementById('logMetricsCount');
-        if (footerString) footerString.innerHTML = `Showing ${logs.length} of ${allLogs.length} recent actions.`;
+        // Count metrics display removed per instructions
     };
 
     // Instant Filters Logic
@@ -257,4 +259,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load initial
     loadLogs();
+
+    // --- BULLETPROOF FAUX-REALTIME HEARTBEAT ---
+    // If Supabase replication is not manually turned on by the Database Admin, native web-sockets will fail.
+    // Instead, we use an ultra-lightweight silent poller checking ONLY the single newest record every 2 seconds.
+    setInterval(async () => {
+        try {
+            // Is there a search filter applied? Don't interrupt user typing.
+            if (searchInput && searchInput.value.trim().length > 0) return;
+
+            const { data } = await window.sb.from('audit_logs')
+                .select('log_id')
+                .order('trace_time', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (data && allLogs.length > 0) {
+                // If the top log in the database differs from our top local array log
+                if (data.log_id !== allLogs[0].log_id) {
+                    console.log("[Audit Trail] Background mutation detected. Executing silent sync.");
+                    loadLogs(true); // 'true' = silent mode to prevent flashing the "loading..." text
+                }
+            }
+        } catch (e) {
+            // Ignore minor network hiccups
+        }
+    }, 2000);
 });

@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .neq('user_id', localStorage.getItem('user_id'))
                             .is('ended_at', null);
 
+                        // 3. Log to telemetry
+                        if (window.logAction) {
+                            window.logAction('GLOBAL_SESSION_PURGE', 'user.security', { event: 'All non-admin active sessions terminated' }, 'critical');
+                        }
+
                         Swal.fire('Purged', 'All other active sessions have been terminated from the cloud.', 'success');
                         fetchAndRenderSessions(); // re-sync
                     } catch (err) {
@@ -202,6 +207,11 @@ function handleDisconnectUser(e) {
                     .update({ ended_at: new Date().toISOString() })
                     .eq('user_id', targetUserId)
                     .is('ended_at', null);
+
+                // 3. Log to Telemetry
+                if (window.logAction) {
+                    window.logAction('ADMIN_FORCED_DISCONNECT', 'user.security', { target_id: targetUserId, method: 'admin_forced_disconnect' }, 'warning');
+                }
 
                 Swal.fire('Disconnected', 'User session terminated from the cloud registry.', 'success')
                     .then(() => {

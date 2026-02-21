@@ -205,6 +205,19 @@ async function handleLogin(event) {
 			console.warn("Failed to update presence status", e);
 		}
 
+		// Explicitly Record Login into the Audit Trail (Since logAction isn't loaded here yet)
+		try {
+			await window.sb.from('audit_logs').insert([{
+				user_id: data.user.id,
+				signature: 'SESSION_INIT',
+				subsystem: 'user.auth',
+				payload: { event: 'Secure Login via Credentials' },
+				severity: 'info'
+			}]);
+		} catch (e) {
+			// Fail silently over non-critical audittrail block
+		}
+
 		// Trigger Flip Animation
 		const flipper = document.getElementById('loginFlipper');
 		if (flipper) {
