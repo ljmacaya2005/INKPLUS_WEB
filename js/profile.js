@@ -264,6 +264,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (els.headerName) els.headerName.textContent = fullName;
 
                     Swal.fire('Saved', 'Profile information updated successfully.', 'success');
+
+                    if (window.logAction) {
+                        window.logAction('PROFILE_UPDATED', 'user.profile', { first_name: fName, contact: phone }, 'info');
+                    }
                     toggleEditMode(false); // Switch back to Read Only Mode on success!
 
                 } catch (err) {
@@ -361,6 +365,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         background: 'var(--card-bg)',
                         color: 'var(--text-main)'
                     });
+
+                    if (window.logAction) {
+                        window.logAction('EMAIL_UPDATED', 'user.security', { new_email: newEmail, method: 'direct_admin_override' }, 'warning');
+                    }
 
                 } catch (err) {
                     console.error(err);
@@ -509,6 +517,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 background: 'var(--card-bg)',
                                 color: 'var(--text-main)'
                             });
+
+                            if (window.logAction) {
+                                window.logAction('PASSWORD_UPDATED', 'user.security', { method: 'self_serve_reset' }, 'warning');
+                            }
                         } catch (err) {
                             Swal.fire({
                                 title: 'Error',
@@ -551,6 +563,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // Close session record
                         if (sessionId) {
                             await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId);
+
+                            if (window.logAction) {
+                                await window.logAction('SESSION_TERMINATED', 'user.auth', { result: 'User Signed Out' }, 'info');
+                            }
                         }
 
                         await window.sb.auth.signOut();

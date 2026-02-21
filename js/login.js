@@ -8,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	const pInput = document.getElementById('password');
 	if (uInput) uInput.value = '';
 	if (pInput) pInput.value = '';
-	window.actualPassword = '';
-
-	// --- Splash Screen Logic ---
 	const splashDuration = 2800; // Total display time
 
 	setTimeout(() => {
@@ -49,151 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			visibleIcon.style.display = isHidden ? 'block' : 'none';
 		}
 	};
-
-	// --- Password Masking and Toggle Logic ---
-	const passwordInput = document.getElementById('password');
-	const passwordToggle = document.getElementById('passwordToggle');
-	const MAX_PASSWORD_LENGTH = 20;
-
-	// Store the actual password value separately - GLOBAL for login handler
-	let isPasswordVisible = false;
-
-	if (passwordInput && passwordToggle) {
-		// Handle keyboard input to properly capture typed characters
-		passwordInput.addEventListener('keydown', (e) => {
-			const cursorPos = passwordInput.selectionStart;
-			const selectionStart = passwordInput.selectionStart; // Keep track of selection for correct cursor placement
-			const selectionEnd = passwordInput.selectionEnd;
-			const hasSelection = selectionStart !== selectionEnd;
-
-			if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-				// Check if adding another character would exceed max length
-				if (window.actualPassword.length >= MAX_PASSWORD_LENGTH && !hasSelection) {
-					e.preventDefault();
-					return;
-				}
-				// Regular character being typed
-				e.preventDefault();
-				if (hasSelection) {
-					window.actualPassword = window.actualPassword.substring(0, selectionStart) + e.key + window.actualPassword.substring(selectionEnd);
-				} else {
-					window.actualPassword = window.actualPassword.substring(0, cursorPos) + e.key + window.actualPassword.substring(cursorPos);
-				}
-				// Enforce max length
-				if (window.actualPassword.length > MAX_PASSWORD_LENGTH) {
-					window.actualPassword = window.actualPassword.substring(0, MAX_PASSWORD_LENGTH);
-				}
-				updatePasswordDisplay(Math.min(selectionStart + 1, window.actualPassword.length));
-			} else if (e.key === 'Backspace') {
-				e.preventDefault();
-				if (hasSelection) {
-					window.actualPassword = window.actualPassword.substring(0, selectionStart) + window.actualPassword.substring(selectionEnd);
-					updatePasswordDisplay(selectionStart);
-				} else if (cursorPos > 0) {
-					window.actualPassword = window.actualPassword.substring(0, cursorPos - 1) + window.actualPassword.substring(cursorPos);
-					updatePasswordDisplay(cursorPos - 1);
-				}
-			} else if (e.key === 'Delete') {
-				e.preventDefault();
-				if (hasSelection) {
-					window.actualPassword = window.actualPassword.substring(0, selectionStart) + window.actualPassword.substring(selectionEnd);
-					updatePasswordDisplay(selectionStart);
-				} else {
-					window.actualPassword = window.actualPassword.substring(0, cursorPos) + window.actualPassword.substring(cursorPos + 1);
-					updatePasswordDisplay(cursorPos);
-				}
-			} else if (e.key === 'ArrowLeft') {
-				// Allow default behavior for arrow keys
-				return;
-			} else if (e.key === 'ArrowRight') {
-				// Allow default behavior for arrow keys
-				return;
-			}
-		});
-
-		// Handle paste event to add pasted text
-		passwordInput.addEventListener('paste', (e) => {
-			e.preventDefault();
-			const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-			const cursorPos = passwordInput.selectionStart;
-			const selectionStart = passwordInput.selectionStart;
-			const selectionEnd = passwordInput.selectionEnd;
-
-			if (selectionStart !== selectionEnd) {
-				window.actualPassword = window.actualPassword.substring(0, selectionStart) + pastedText + window.actualPassword.substring(selectionEnd);
-			} else {
-				window.actualPassword = window.actualPassword.substring(0, cursorPos) + pastedText + window.actualPassword.substring(cursorPos);
-			}
-
-			// Enforce max length
-			if (window.actualPassword.length > MAX_PASSWORD_LENGTH) {
-				window.actualPassword = window.actualPassword.substring(0, MAX_PASSWORD_LENGTH);
-			}
-
-			const newPos = Math.min(selectionStart + pastedText.length, window.actualPassword.length);
-			updatePasswordDisplay(newPos);
-		});
-
-		// Function to update the password display and cursor position
-		function updatePasswordDisplay(newCursorPos) {
-			if (isPasswordVisible) {
-				passwordInput.value = window.actualPassword;
-			} else {
-				passwordInput.value = '•'.repeat(window.actualPassword.length);
-			} // This line is still needed because the browser's default masking might not be '•'
-
-			// Restore cursor position
-			setTimeout(() => {
-				passwordInput.setSelectionRange(newCursorPos, newCursorPos);
-			}, 0);
-		}
-
-		// Toggle password visibility
-		passwordToggle.addEventListener('click', (e) => {
-			e.preventDefault();
-			isPasswordVisible = !isPasswordVisible;
-
-			const cursorPos = passwordInput.selectionStart;
-			const eyeHidden = passwordToggle.querySelector('.eye-hidden');
-			const eyeVisible = passwordToggle.querySelector('.eye-visible');
-
-			if (isPasswordVisible) {
-				passwordInput.type = 'text'; // Change input type to text to show characters
-				passwordInput.value = window.actualPassword;
-				passwordToggle.setAttribute('aria-label', 'Hide password');
-				eyeHidden.style.display = 'none';
-				eyeVisible.style.display = 'block';
-			} else {
-				passwordInput.type = 'password'; // Change input type back to password for browser masking
-				passwordInput.value = '•'.repeat(window.actualPassword.length);
-				passwordToggle.setAttribute('aria-label', 'Show password');
-				eyeHidden.style.display = 'block';
-				eyeVisible.style.display = 'none';
-			}
-
-			// Restore cursor position
-			setTimeout(() => {
-				passwordInput.setSelectionRange(cursorPos, cursorPos);
-			}, 0);
-		});
-
-		// Prevent default form submission on toggle button click
-		passwordToggle.addEventListener('keydown', (e) => {
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				passwordToggle.click();
-			}
-		});
-
-		// Handle form submission - use the actual password
-		const loginForm = document.getElementById('loginForm');
-		if (loginForm) {
-			loginForm.addEventListener('submit', (e) => {
-				// Make sure the actual password is sent
-				passwordInput.value = window.actualPassword;
-			});
-		}
-	}
 
 });
 
@@ -289,10 +141,7 @@ async function handleLogin(event) {
 	event.preventDefault();
 
 	const email = document.getElementById('email').value.trim();
-
-	// Get the actual password from the global variable (used for masking)
-	// or fallback to the input value
-	const password = (window.actualPassword || document.getElementById('password').value).trim();
+	const password = document.getElementById('password').value; // Read password natively
 
 	// Check for empty fields
 	if (!email || !password) {
@@ -457,7 +306,6 @@ async function handleLogin(event) {
 				// Clear password field after error
 				const pInput = document.getElementById('password');
 				if (pInput) pInput.value = '';
-				window.actualPassword = '';
 				document.getElementById('email').focus();
 			}
 		});

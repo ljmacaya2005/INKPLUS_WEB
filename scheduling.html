@@ -120,6 +120,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="services.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                            </svg>
+                            <span>Service Catalog</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="settings.html" class="nav-link">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -196,11 +206,7 @@
                                                 <div class="form-floating mb-3">
                                                     <select class="form-select bg-light border-0" id="deviceBrand"
                                                         required>
-                                                        <option value="" selected disabled>Select brand...</option>
-                                                        <option value="Epson">Epson</option>
-                                                        <option value="Canon">Canon</option>
-                                                        <option value="Brother">Brother</option>
-                                                        <option value="Other">Other</option>
+                                                        <option value="" selected disabled>Loading Brands...</option>
                                                     </select>
                                                     <label for="deviceBrand">Printer Brand</label>
                                                 </div>
@@ -221,20 +227,8 @@
                                                         Category</label>
                                                     <select class="form-select bg-light border-0 py-3" id="deviceType"
                                                         required>
-                                                        <option value="" selected disabled>Select service...</option>
-                                                        <optgroup label="Repair & Maintenance">
-                                                            <option value="Print Head Unclogging">Print Head Unclogging
-                                                            </option>
-                                                            <option value="Ink Cartridge Replacement">Ink Cartridge
-                                                                Replacement</option>
-                                                            <option value="Roller Replacement / Paper Jam">Roller
-                                                                Replacement / Paper Jam</option>
-                                                            <option value="CISS Install / Waste Ink Pad">CISS Install /
-                                                                Waste Ink Pad Reset</option>
-                                                            <option value="General Maintenance">General Maintenance &
-                                                                Deep Clean</option>
-                                                            <option value="Other Diagnostics">Other Diagnostics</option>
-                                                        </optgroup>
+                                                        <option value="" selected disabled>Loading Service Catalog...
+                                                        </option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -257,30 +251,10 @@
                                                     <label
                                                         class="form-label smaller text-uppercase fw-bold opacity-50 mb-3">Accessories
                                                         Brought</label>
-                                                    <div class="row g-3">
-                                                        <div class="col-6 col-sm-4">
-                                                            <div class="form-check custom-check p-0">
-                                                                <input class="btn-check" type="checkbox" id="accPower"
-                                                                    autocomplete="off">
-                                                                <label class="btn btn-outline-secondary w-100 py-2"
-                                                                    for="accPower">Power Adapter</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6 col-sm-4">
-                                                            <div class="form-check custom-check p-0">
-                                                                <input class="btn-check" type="checkbox" id="accUSB"
-                                                                    autocomplete="off">
-                                                                <label class="btn btn-outline-secondary w-100 py-2"
-                                                                    for="accUSB">USB Cable</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6 col-sm-4">
-                                                            <div class="form-check custom-check p-0">
-                                                                <input class="btn-check" type="checkbox" id="accNone"
-                                                                    autocomplete="off" checked>
-                                                                <label class="btn btn-outline-secondary w-100 py-2"
-                                                                    for="accNone">Unit Only</label>
-                                                            </div>
+                                                    <div class="row g-3" id="accessoriesListGrid">
+                                                        <div class="col-12 py-3 text-center text-muted smaller">
+                                                            <div class="spinner-border spinner-border-sm me-2"
+                                                                role="status"></div> Loading catalog accessories...
                                                         </div>
                                                     </div>
                                                 </div>

@@ -84,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .from('users')
             .select(`
                 user_id,
-                roles (*)
+                roles (*),
+                profiles (first_name, last_name, profile_url)
             `)
             .eq('user_id', userId)
             .single();
@@ -96,7 +97,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle Potential Array vs Object response from Supabase Join
         const perms = Array.isArray(userData.roles) ? userData.roles[0] : userData.roles;
+        const profile = Array.isArray(userData.profiles) ? userData.profiles[0] : (userData.profiles || {});
         // console.log('[RBAC] Config:', perms);
+
+        // --- GLOBAL PROFILE INJECTION ---
+        // Instantly injects the true user data into the top right navigation corner of all dashboards
+        const profileSpan = document.querySelector('.user-profile span');
+        const profileImg = document.querySelector('.user-profile img');
+
+        if (profileSpan || profileImg) {
+            const firstName = profile.first_name || '';
+            const lastName = profile.last_name || '';
+            let fullName = `${firstName} ${lastName}`.trim();
+
+            if (!fullName) fullName = (perms.role_name === 'Administrator' || perms.role_name === 'Admin') ? 'Administrator' : 'System User';
+
+            if (profileSpan) {
+                // Strip the exact CSS classes that were hiding it on mobile devices
+                profileSpan.classList.remove('d-none', 'd-sm-inline');
+
+                // Dynamically inject Full Name for desktop, but only First Name for mobile spacing
+                profileSpan.innerHTML = `
+                    <span class="d-none d-sm-inline">${fullName}</span>
+                    <span class="d-inline d-sm-none">${firstName || fullName}</span>
+                `;
+            }
+
+            if (profileImg) {
+                const avatarUrl = profile.profile_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=4A90A4&color=fff`;
+                profileImg.src = avatarUrl;
+            }
+
+            // Also update the dashboard greeting explicitly on the Home view if it exists
+            const welcomeBanner = document.querySelector('.dashboard-header p.small');
+            if (welcomeBanner && welcomeBanner.textContent.includes('Welcome back')) {
+                welcomeBanner.textContent = `Welcome back, ${firstName || fullName}`;
+            }
+        }
 
         // Safety Override: Administrator sees ALL
         let isAdmin = false;
@@ -113,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'can_sessions': 'sessions.html',
             'can_users': 'users.html',
             'can_actions': 'actions.html',
+            'can_services': 'services.html',
             'can_settings': 'settings.html'
         };
 
@@ -346,6 +384,27 @@ window.toggleFullScreen = function () {
     }
 };
 
+// --- Global Telemetry Actions Logger ---
+window.logAction = async function (signature, subsystem, payload = {}, severity = 'info') {
+    try {
+        if (!window.sb) return;
+        const userId = localStorage.getItem('user_id');
+
+        // Asynchronously fire-and-forget log
+        window.sb.from('audit_logs').insert([{
+            user_id: userId || null,
+            signature: signature,
+            subsystem: subsystem,
+            payload: payload,
+            severity: severity
+        }]).then(({ error }) => {
+            if (error && error.code !== '42P01') console.warn("[Telemetry] Non-critical recording error", error);
+        });
+    } catch (e) {
+        console.warn("[Telemetry] Failed to record action", e);
+    }
+};
+
 // --- Global Session Guard & Live Heartbeat ---
 const startSessionGuard = () => {
     const userId = localStorage.getItem('user_id');
@@ -383,17 +442,23 @@ const startSessionGuard = () => {
     // 3. Continuous Heartbeat (Polls every 15 seconds)
     setInterval(async () => {
         try {
-            const { data, error } = await window.sb.from('users').select('is_online').eq('user_id', userId).single();
+            // Fetch account active status
+            const { data: userData } = await window.sb.from('users').select('is_active').eq('user_id', userId).single();
 
-            // If the database marks them as offline (e.g., terminated by an administrator from sessions.html)
-            if (data && data.is_online === false) {
+            // Fetch precise session status 
+            let sessionTerminated = false;
+            if (sessionId) {
+                const { data: sessData } = await window.sb.from('login_sessions').select('ended_at').eq('id', sessionId).single();
+                if (sessData && sessData.ended_at !== null) {
+                    sessionTerminated = true; // An administrator explicitly killed this session record
+                }
+            }
+
+            // If the user's account was suspended (is_active: false) OR their specific session was killed
+            if ((userData && userData.is_active === false) || sessionTerminated) {
                 console.warn("[Session Guard] Account terminated remotely or revoked. Executing strict logout.");
 
-                // Close session record
-                if (sessionId) {
-                    await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId);
-                }
-
+                // If killed natively by admin session purge, ensure the auth is dropped locally
                 await window.sb.auth.signOut();
                 localStorage.clear();
                 window.location.replace('index.html');
@@ -435,6 +500,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 const handleTabClose = () => {
+    // --- TEMPORARY URGENT OVERRIDE ---
+    // Globally blocking automatic termination on tab closure. Mobile browsers can fire this 
+    // randomly in the background, causing the heartbeat to execute a global logout.
+    return;
+
     // If the user is just navigating internally or refreshing the page, SKIP the offline ping!
     if (window.isNavigatingInternal) return;
 
@@ -479,17 +549,17 @@ const handleTabClose = () => {
 window.addEventListener('beforeunload', handleTabClose);
 
 // Mobile Safari / Chrome App Backgrounding Edge Cases
-window.addEventListener('pagehide', handleTabClose);
+// We explicitly DO NOT call handleTabClose() on pagehide or 'hidden' visibility.
+// Supabase's Native Presence Channel automatically drops the user's "Active" status 
+// when the websocket sleeps in the background without destroying their DB Session token,
+// preventing hyper-sensitive logouts while still remaining accurate on the Admin panel.
 
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        // App was minimized or tab backgrounded on mobile, mark as away temporarily
-        handleTabClose();
-    } else if (document.visibilityState === 'visible' && !window.isNavigatingInternal) {
-        // Returned to tab, re-initialize Online Status
+    if (document.visibilityState === 'visible' && !window.isNavigatingInternal) {
+        // Returned to tab, ping the database to ensure timestamps are fresh
         const userId = localStorage.getItem('user_id');
         if (userId && window.sb) {
-            window.sb.from('users').update({ is_online: true, updated_at: new Date().toISOString() }).eq('user_id', userId);
+            window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId).catch(() => { });
         }
     }
 });

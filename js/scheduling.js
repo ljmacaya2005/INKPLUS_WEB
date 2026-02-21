@@ -52,15 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const serviceCategory = document.getElementById('deviceType').value;
                 const problemDesc = document.getElementById('problemDescription').value.trim();
 
-                // Gather Accessories
+                // Gather Accessories Iteratively
                 let accessories = [];
-                if (document.getElementById('accPower').checked) accessories.push('Power Adapter');
-                if (document.getElementById('accUSB').checked) accessories.push('USB Cable');
-                if (document.getElementById('accNone').checked) accessories.push('Unit Only');
+                const accCheckboxes = document.querySelectorAll('.dynamic-acc-check:checked');
+                accCheckboxes.forEach(cb => accessories.push(cb.value));
+                if (accessories.length === 0) accessories.push('Unit Only');
                 const accStr = accessories.join(', ');
 
                 // Generate tracking logic
-                const ticketCode = 'INK-' + Math.floor(1000 + Math.random() * 9000) + '-' + new Date().getFullYear();
+                // Modern Business Standard (Format: INK-######)
+                // A clean, 6-digit numeric tracking identifier matching modern e-commerce and service industry standards.
+                const min = 100000;
+                const max = 999999;
+                const ticketCode = 'INK-' + Math.floor(Math.random() * (max - min + 1) + min);
 
                 try {
                     // Step 1: Handle Customer (Upsert/Insert purely by basic data for now)
@@ -114,6 +118,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (ticketErr) throw ticketErr;
 
+                    // Fire Telemetry Action
+                    if (window.logAction) {
+                        window.logAction('TICKET_CREATED', 'scheduling.engine', {
+                            ticket_code: ticketCode,
+                            customer_id: customerId,
+                            brand: deviceBrand,
+                            model: deviceModel
+                        }, 'info');
+                    }
+
                     // Success UI
                     Swal.fire({
                         title: 'Ticket Scheduled!',
@@ -147,6 +161,90 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
+
+        // --- Load Dynamic Services and Brands ---
+        const loadDynamicServices = async () => {
+            try {
+                const { data: configRows, error } = await window.sb
+                    .from('service_catalog')
+                    .select('*')
+                    .order('category', { ascending: true })
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                if (configRows && configRows.length > 0) {
+                    const brandSelect = document.getElementById('deviceBrand');
+                    const serviceSelect = document.getElementById('deviceType');
+
+                    const brands = configRows.filter(r => r.type === 'brand' && r.is_active !== false);
+                    if (brands.length > 0 && brandSelect) {
+                        brandSelect.innerHTML = '<option value="" selected disabled>Select brand...</option>';
+                        brands.forEach(b => {
+                            const opt = document.createElement('option');
+                            opt.value = b.name;
+                            opt.textContent = b.name;
+                            brandSelect.appendChild(opt);
+                        });
+                        // Add "Other"
+                        const opt = document.createElement('option');
+                        opt.value = 'Other';
+                        opt.textContent = 'Other';
+                        brandSelect.appendChild(opt);
+                    }
+
+                    const services = configRows.filter(r => r.type === 'service' && r.is_active !== false);
+                    if (services.length > 0 && serviceSelect) {
+                        serviceSelect.innerHTML = '<option value="" selected disabled>Select service...</option>';
+
+                        // Group by category
+                        const categories = [...new Set(services.map(s => s.category).filter(Boolean))];
+                        categories.forEach(cat => {
+                            const group = document.createElement('optgroup');
+                            group.label = cat;
+                            services.filter(s => s.category === cat).forEach(s => {
+                                const opt = document.createElement('option');
+                                opt.value = s.name;
+                                opt.textContent = s.name;
+                                group.appendChild(opt);
+                            });
+                            serviceSelect.appendChild(group);
+                        });
+
+                        // Uncategorized services
+                        services.filter(s => !s.category).forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s.name;
+                            opt.textContent = s.name;
+                            serviceSelect.appendChild(opt);
+                        });
+                    }
+
+                    // Hydrate Accessories List
+                    const accessories = configRows.filter(r => r.type === 'accessory' && r.is_active !== false);
+                    const accGrid = document.getElementById('accessoriesListGrid');
+                    if (accessories.length > 0 && accGrid) {
+                        accGrid.innerHTML = '';
+                        accessories.forEach((a, index) => {
+                            accGrid.innerHTML += `
+                                <div class="col-6 col-sm-4">
+                                    <div class="form-check custom-check p-0">
+                                        <input class="btn-check dynamic-acc-check" type="checkbox" id="dynamicAcc_${index}" value="${a.name}" autocomplete="off">
+                                        <label class="btn btn-outline-secondary w-100 py-2 text-truncate px-1" for="dynamicAcc_${index}" title="${a.name}">${a.name}</label>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else if (accGrid) {
+                        accGrid.innerHTML = '<div class="col-12 py-3 text-center text-muted smaller">No accessories configured in catalog.</div>';
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not load dynamic service catalog. Using HTML fallbacks. ", err);
+            }
+        };
+
+        loadDynamicServices();
 
         // --- Load Recent Schedules ---
         const loadRecentSchedules = async () => {

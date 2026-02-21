@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>INKPlus — Audit Logs</title>
+    <title>INKPlus — Audit Trail</title>
     <link rel="icon" type="image/x-icon" href="assets/logo2.png">
 
     <!-- Bootstrap 5.3.3 -->
@@ -116,7 +116,17 @@
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
-                            <span>Audit Logs</span>
+                            <span>Audit Trail</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="services.html" class="nav-link">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                            </svg>
+                            <span>Service Catalog</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -149,8 +159,8 @@
                         </svg>
                     </button>
                     <div>
-                        <h2 class="mb-0 fw-bold">Audit Logs</h2>
-                        <p class="text-secondary small mb-0">Security event and activity tracking</p>
+                        <h2 class="mb-0 fw-bold">Audit Trail</h2>
+                        <p class="text-main opacity-75 small mb-0">Monitor what happens inside the application</p>
                     </div>
                 </div>
 
@@ -163,71 +173,88 @@
                 </div>
             </header>
 
-            <div class="container-fluid px-4 py-2">
-                <!-- Metrics Grid -->
+            <div class="container-fluid px-4 py-3">
+                <!-- Friendly Metrics Grid -->
                 <div class="row g-3 mb-4 animate__animated animate__fadeIn">
-                    <div class="col-md-3">
-                        <div class="telemetry-card p-3">
-                            <div class="text-secondary smaller text-uppercase fw-bold mb-1">Events 24h</div>
-                            <div class="h3 fw-bold mb-0">1,284</div>
-                            <div class="text-success smaller mt-1">+12.4% vs yesterday</div>
+                    <div class="col-md-6">
+                        <div
+                            class="telemetry-card p-4 rounded-4 shadow-sm border border-light border-opacity-10 bg-body-tertiary d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-main opacity-75 smaller text-uppercase fw-bold mb-1">Total Actions
+                                    Recorded
+                                </div>
+                                <div class="h3 fw-bold mb-0 text-main" id="statEvents">--</div>
+                                <div class="text-main opacity-75 smaller mt-1">Actions tracked recently</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="telemetry-card p-3">
-                            <div class="text-secondary smaller text-uppercase fw-bold mb-1">Security Flags</div>
-                            <div class="h3 fw-bold mb-0 text-warning">03</div>
-                            <div class="text-secondary smaller mt-1">Requires review</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="telemetry-card p-3">
-                            <div class="text-secondary smaller text-uppercase fw-bold mb-1">System Health</div>
-                            <div class="h3 fw-bold mb-0 text-success">99.9%</div>
-                            <div class="text-secondary smaller mt-1">All services nominal</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="telemetry-card p-3">
-                            <div class="text-secondary smaller text-uppercase fw-bold mb-1">Active Admins</div>
-                            <div class="h3 fw-bold mb-0">02</div>
-                            <div class="text-secondary smaller mt-1">In last 15 mins</div>
+                    <div class="col-md-6">
+                        <div
+                            class="telemetry-card p-4 rounded-4 shadow-sm border border-light border-opacity-10 bg-body-tertiary d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle me-3" id="flagIconBox">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-main opacity-75 smaller text-uppercase fw-bold mb-1">Important Alerts
+                                </div>
+                                <div class="h3 fw-bold mb-0 text-success" id="statFlags">--</div>
+                                <div class="text-main opacity-75 smaller mt-1">Warnings and critical modifications</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Main Log Explorer -->
-                <div class="dashboard-card audit-log-container p-0 overflow-hidden animate__animated animate__fadeInUp">
-                    <!-- Top Bar -->
-                    <div class="p-4 border-bottom border-light border-opacity-10 bg-glass-deep">
+                <div
+                    class="dashboard-card audit-log-container p-0 overflow-hidden shadow-sm animate__animated animate__fadeInUp">
+                    <!-- Top Bar Filters -->
+                    <div class="p-4 border-bottom border-light border-opacity-10 bg-body-tertiary">
                         <div class="row g-3 align-items-center">
                             <div class="col-lg-5">
-                                <div class="search-box-premium">
-                                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
+                                <div class="search-box-premium position-relative">
+                                    <svg class="search-icon position-absolute top-50 start-0 translate-middle-y ms-3 text-main opacity-50"
+                                        width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="11" cy="11" r="8" />
                                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                     </svg>
-                                    <input type="text" class="form-control"
-                                        placeholder="Search operational metadata...">
+                                    <input type="text" class="form-control ps-5 rounded-pill" id="searchLogs"
+                                        placeholder="Search by action, user, or details...">
                                 </div>
                             </div>
                             <div class="col-lg-7">
                                 <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                                    <select class="form-select w-auto bg-glass-input">
-                                        <option>All Modules</option>
-                                        <option>Auth</option>
-                                        <option>Database</option>
-                                        <option>Middleware</option>
+                                    <select class="form-select w-auto rounded-pill shadow-sm" id="filterModule">
+                                        <option value="All Modules">All System Areas</option>
+                                        <option value="user">User Accounts & Security</option>
+                                        <option value="services">Service Setup & Catalog</option>
+                                        <option value="scheduling">Job Scheduling</option>
                                     </select>
-                                    <select class="form-select w-auto bg-glass-input">
-                                        <option>Severity: All</option>
-                                        <option>Low</option>
-                                        <option>Medium</option>
-                                        <option>Critical</option>
+                                    <select class="form-select w-auto rounded-pill shadow-sm" id="filterSeverity">
+                                        <option value="All">All Importance Levels</option>
+                                        <option value="info">General Info</option>
+                                        <option value="warning">Warnings</option>
+                                        <option value="danger">Critical Alerts</option>
                                     </select>
-                                    <button class="btn btn-primary px-4 rounded-pill">Explore</button>
                                 </div>
                             </div>
                         </div>
@@ -235,106 +262,47 @@
 
                     <!-- Table area -->
                     <div class="table-responsive">
-                        <table class="table audit-table-modern mb-0">
-                            <thead>
+                        <table class="table align-middle table-hover mb-0" id="auditTable">
+                            <thead class="bg-light bg-opacity-10 border-bottom border-light border-opacity-10">
                                 <tr>
-                                    <th class="ps-4">Trace Time</th>
-                                    <th>Subject</th>
-                                    <th>Signature</th>
-                                    <th>Subsystem</th>
-                                    <th class="pe-4">Metadata Payload</th>
+                                    <th class="ps-4 fw-semibold text-main opacity-75 py-3" style="width: 15%">Date &
+                                        Time</th>
+                                    <th class="fw-semibold text-main opacity-75 py-3" style="width: 20%">User</th>
+                                    <th class="fw-semibold text-main opacity-75 py-3" style="width: 25%">Action
+                                        Performed</th>
+                                    <th class="fw-semibold text-main opacity-75 py-3" style="width: 15%">System Area
+                                    </th>
+                                    <th class="pe-4 fw-semibold text-main opacity-75 py-3" style="width: 25%">Details
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="audit-row-critical">
-                                    <td class="ps-4 timestamp">2026-01-22 14:45:12</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="subject-avatar me-2"
-                                                style="background-image: url('https://ui-avatars.com/api/?name=Admin&background=4A90A4&color=fff');">
-                                            </div>
-                                            <span class="subject-name">Administrator</span>
-                                        </div>
+                                <!-- Logs will be injected here by Javascript -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-main opacity-75">
+                                        <div class="spinner-border spinner-border-sm me-2"></div> Loading records...
                                     </td>
-                                    <td><span class="sig text-success">SESSION_INIT</span></td>
-                                    <td><span class="subsystem text-info-soft">auth.provider</span></td>
-                                    <td class="pe-4 payload">{"ip":"192.168.1.1", "agent":"Chrome/121", "method":"2FA"}
-                                    </td>
-                                </tr>
-                                <tr class="audit-row-info">
-                                    <td class="ps-4 timestamp">2026-01-22 14:30:45</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="subject-avatar me-2"
-                                                style="background-image: url('https://ui-avatars.com/api/?name=Admin&background=4A90A4&color=fff');">
-                                            </div>
-                                            <span class="subject-name">Administrator</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="sig text-primary">ENTITY_PATCH</span></td>
-                                    <td><span class="subsystem text-primary-soft">job_manager</span></td>
-                                    <td class="pe-4 payload">{"id":124, "diff":{"priority":"HIGH"}, "src":"dashboard"}
-                                    </td>
-                                </tr>
-                                <tr class="audit-row-warning">
-                                    <td class="ps-4 timestamp">2026-01-22 13:20:10</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="subject-avatar me-2"
-                                                style="background-image: url('https://ui-avatars.com/api/?name=Staff&background=6BB3C7&color=fff');">
-                                            </div>
-                                            <span class="subject-name">Staff Member</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="sig text-info">TASK_SCHEDULE</span></td>
-                                    <td><span class="subsystem text-info-soft">engine.scheduling</span></td>
-                                    <td class="pe-4 payload">{"client":"Stelar Tech", "slot":"2026-02-05", "ver":2.1}
-                                    </td>
-                                </tr>
-                                <tr class="audit-row-danger">
-                                    <td class="ps-4 timestamp">2026-01-22 11:45:30</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="subject-avatar me-2"
-                                                style="background-image: url('https://ui-avatars.com/api/?name=Admin&background=4A90A4&color=fff');">
-                                            </div>
-                                            <span class="subject-name">Administrator</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="sig text-danger">RESOURCE_PURGE</span></td>
-                                    <td><span class="subsystem text-danger-soft">storage.cleanup</span></td>
-                                    <td class="pe-4 payload">{"target":"user.tmp:44", "mode":"permanent", "safe":true}
-                                    </td>
-                                </tr>
-                                <tr class="audit-row-info">
-                                    <td class="ps-4 timestamp">2026-01-22 10:15:05</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="subject-avatar me-2"
-                                                style="background-image: url('https://ui-avatars.com/api/?name=System&background=334155&color=fff');">
-                                            </div>
-                                            <span class="subject-name">Telemetry Sync</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="sig text-secondary">HEARTBEAT_READY</span></td>
-                                    <td><span class="subsystem text-secondary-soft">node_master</span></td>
-                                    <td class="pe-4 payload">{"uptime":3600, "temp":"42C", "load":0.15}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="p-4 d-flex justify-content-between align-items-center">
-                        <div class="small text-secondary fw-medium">Showing 1-5 of 1,284 events</div>
+                    <!-- Footer Information -->
+                    <div class="p-4 d-flex justify-content-between align-items-center bg-body-tertiary">
+                        <div class="small text-main opacity-75 fw-medium" id="logMetricsCount">Connecting to database...
+                        </div>
                         <nav>
-                            <ul class="pagination pagination-premium mb-0">
-                                <li class="page-item disabled"><a class="page-link" href="#">‹</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">›</a></li>
-                            </ul>
+                            <button class="btn btn-sm btn-outline-secondary bg-body rounded-pill px-4 shadow-sm"
+                                onclick="location.reload()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" class="me-1">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                                Refresh View
+                            </button>
                         </nav>
                     </div>
                 </div>
@@ -344,6 +312,7 @@
 
     <!-- Glass Dock Quick Actions -->
     <div class="glass-dock">
+        ...
         <div class="dock-content">
             <button class="dock-btn" id="dockFull" title="Fullscreen">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -401,7 +370,7 @@
     <script src="js/supabase-config.js" defer></script>
     <script src="js/color-modes.js?v=2.0" defer></script>
     <script src="js/dashboard.js?v=2.6" defer></script>
-    <script src="js/actions.js?v=2.0" defer></script>
+    <script src="js/actions.js?v=3.0" defer></script>
 </body>
 
 </html>

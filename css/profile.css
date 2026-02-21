@@ -272,22 +272,39 @@ body {
 }
 
 @media (max-width: 576px) {
-
     .nav-pills-slider,
     .nav-pills-slider .nav-link {
-        width: 100%;
-        display: block;
+        width: 100% !important;
+        display: block !important;
         border-radius: 12px;
+        text-align: center;
+        margin-bottom: 5px;
     }
 
     .slider-indicator {
-        display: none;
+        display: none !important;
     }
 
     /* Disable slider on mobile for simplicity */
     .nav-pills-slider .nav-link.active {
         background: var(--primary-color) !important;
-        color: white;
+        color: white !important;
+    }
+    
+    .w-sm-auto-mobile {
+        width: 100% !important;
+    }
+    .flex-sm-row-mobile {
+        flex-direction: column !important;
+    }
+}
+
+@media (min-width: 577px) {
+    .w-sm-auto-mobile {
+        width: auto !important;
+    }
+    .flex-sm-row-mobile {
+        flex-direction: row !important;
     }
 }
 

@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     can_sessions: true,
                     can_users: true,
                     can_actions: true,
+                    can_services: true,
                     can_settings: true
                 }]);
             }
@@ -448,6 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     { key: 'can_sessions', label: 'Sessions', desc: 'View login sessions (sessions.html).', icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
                     { key: 'can_users', label: 'Users', desc: 'User management (users.html).', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
                     { key: 'can_actions', label: 'Actions', desc: 'Audit logs (actions.html).', icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+                    { key: 'can_services', label: 'Service Catalog', desc: 'Manage dynamic services and brands (services.html).', icon: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>' },
                     { key: 'can_settings', label: 'Settings', desc: 'Global configuration (settings.html).', icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15.0A10 10 0 0 0 16 9V7a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2A10 10 0 0 0 4.6 15.0"/><path d="M21.5 12.5a10 10 0 0 1-19 0"/>' }
                 ];
 
@@ -510,10 +512,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (error) throw error;
 
-                    // Update the locally cached roles array to maintain UI state seamlessly
                     const roleIndex = roles.findIndex(r => r.role_id === roleId);
                     if (roleIndex > -1) {
                         roles[roleIndex][column] = value;
+                    }
+
+                    // Fire Telemetry Action
+                    if (window.logAction) {
+                        window.logAction('ROLE_PERMS_UPDATED', 'user.security', { role_id: roleId, modified_column: column, new_value: value }, 'warning');
                     }
 
                     // Subtle success feedback
@@ -545,6 +551,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const { error } = await window.sb.from('roles').insert([{ role_name: name }]);
                     if (error) Swal.fire('Error', error.message, 'error');
                     else {
+                        // Fire Telemetry Action
+                        if (window.logAction) {
+                            window.logAction('ROLE_CREATED', 'user.management', { role_name: name }, 'warning');
+                        }
+
                         Swal.fire({ icon: 'success', title: 'Role Created', timer: 1500, showConfirmButton: false, background: 'var(--card-bg)', color: 'var(--text-main)' });
                         fetchRolesMgmt(); // Reload
                     }
@@ -572,17 +583,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-secondary">First Name</label>
-                                    <input id="swal-fname" class="form-control" placeholder="John">
+                                    <input id="swal-fname" class="form-control" placeholder="First Name">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-secondary">Last Name</label>
-                                    <input id="swal-lname" class="form-control" placeholder="Doe">
+                                    <input id="swal-lname" class="form-control" placeholder="Last Name">
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-secondary">Email Address</label>
-                                <input type="email" id="swal-email" class="form-control" placeholder="john.doe@inkplus.com">
+                                <input type="email" id="swal-email" class="form-control" placeholder="user@inkplus.com">
                             </div>
 
                             <div class="mb-3">
@@ -622,10 +633,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }).then(async (result) => {
                     if (result.isConfirmed) {
                         const { fname, lname, email, password, roleId } = result.value;
-                        Swal.fire({ title: 'Creating...', didOpen: () => Swal.showLoading(), background: 'var(--card-bg)', color: 'var(--text-main)' });
+
+                        // 0. Service Key Authorization for Safe Cross-Account Creation
+                        if (!window.SUPABASE_SERVICE_KEY) {
+                            const { value: key } = await Swal.fire({
+                                title: 'Admin Authorization',
+                                text: 'Enter Supabase Service Role Key. This is required to create a new user without automatically logging you out of your current session.',
+                                input: 'password',
+                                showCancelButton: true,
+                                confirmButtonText: 'Authorize & Create',
+                                confirmButtonColor: '#4A90A4',
+                                background: 'var(--card-bg)',
+                                color: 'var(--text-main)',
+                                inputValidator: (val) => !val && 'Service Key is required!'
+                            });
+
+                            if (key) {
+                                window.SUPABASE_SERVICE_KEY = key;
+                            } else {
+                                Swal.fire('Cancelled', 'User provision cancelled.', 'info');
+                                return; // Abort
+                            }
+                        }
+
+                        Swal.fire({ title: 'Creating...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: 'var(--card-bg)', color: 'var(--text-main)' });
 
                         try {
-                            // 0. Pre-Flight Check: Verify existing email
+                            // 0.5 Pre-Flight Check: Verify existing email locally via Public Policy
                             const { data: existingUser } = await window.sb
                                 .from('profiles')
                                 .select('email')
@@ -636,18 +670,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 throw new Error('This email address is already officially registered in the system.');
                             }
 
-                            // 1. Auth SignUp
-                            const { data, error } = await window.sb.auth.signUp({
-                                email, password, options: { data: { first_name: fname, last_name: lname } }
-                            });
-                            if (error) throw error;
-                            if (!data.user) throw new Error('No user returned.');
+                            // Initialize Admin Client
+                            let adminClient;
+                            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                                adminClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
+                            } else if (window.supabase && window.supabase.createClient) {
+                                adminClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
+                            } else {
+                                throw new Error("Supabase SDK not loaded.");
+                            }
 
-                            // 2. Insert User with Role
+                            // 1. Auth Admin CreateUser (Bypasses Auto-Login completely!)
+                            const { data, error } = await adminClient.auth.admin.createUser({
+                                email: email,
+                                password: password,
+                                email_confirm: true, // Skips verification requirement
+                                user_metadata: { first_name: fname, last_name: lname }
+                            });
+
+                            if (error) {
+                                // Important: Let the user know if their key was bad
+                                if (error.message.includes('401') || error.message.includes('authorized')) {
+                                    window.SUPABASE_SERVICE_KEY = null;
+                                }
+                                throw error;
+                            }
+                            if (!data.user) throw new Error('No user returned from Supabase Admin API.');
+
+                            // 2. Insert User with Role under their new ID
                             await window.sb.from('users').insert([{ user_id: data.user.id, role_id: roleId, is_active: true }]);
 
                             // 3. Insert Profile
                             await window.sb.from('profiles').insert([{ user_id: data.user.id, first_name: fname, last_name: lname, email }]);
+
+                            // Fire Telemetry Action
+                            if (window.logAction) {
+                                window.logAction('USER_PROVISIONED', 'user.management', { email: email, role_id: roleId }, 'warning');
+                            }
 
                             Swal.fire({
                                 icon: 'success',
@@ -751,6 +810,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .update({ status: 'approved' })
                     .eq('id', requestId);
 
+                // Fire Telemetry Action
+                if (window.logAction) {
+                    window.logAction('RECOVERY_APPROVED', 'user.security', { target_email: userEmail }, 'critical');
+                }
+
                 // 6. Success
                 Swal.fire({
                     title: 'Request Approved',
@@ -795,6 +859,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         if (error) throw error;
 
+                        // Fire Telemetry Action
+                        if (window.logAction) {
+                            window.logAction('RECOVERY_REJECTED', 'user.security', { request_id: requestId }, 'info');
+                        }
+
                         Swal.fire('Rejected', 'Request marked as rejected.', 'success');
                         fetchResetRequests();
                     } catch (err) {
@@ -825,6 +894,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .eq('user_id', userId);
 
                         if (error) throw error;
+
+                        // Fire Telemetry Action
+                        if (window.logAction) {
+                            window.logAction('USER_STATUS_TOGGLED', 'user.management', { target_id: userId, new_status: currentStatus ? 'suspended' : 'active' }, 'warning');
+                        }
 
                         Swal.fire(`${actionText}ed`, `User access ${currentStatus ? 'suspended' : 'restored'}.`, 'success');
                         fetchUsers();
@@ -913,6 +987,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         last_name: formValues.lname
                     }).eq('user_id', userId);
                     if (updateProfErr) throw updateProfErr;
+
+                    // Fire Telemetry Action
+                    if (window.logAction) {
+                        window.logAction('USER_CONFIG_UPDATED', 'user.management', { target_id: userId, new_role: formValues.roleId }, 'info');
+                    }
 
                     Swal.fire({ icon: 'success', title: 'Updated successfully', showConfirmButton: false, timer: 1500, background: 'var(--card-bg)', color: 'var(--text-main)' });
                     fetchUsers(); // Refresh Table

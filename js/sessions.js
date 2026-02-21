@@ -44,12 +44,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
+                        // 1. Mark visually offline on admin grid
                         const { error } = await window.sb
                             .from('users')
                             .update({ is_online: false })
                             .neq('user_id', localStorage.getItem('user_id')); // Keep current admin logged in
 
                         if (error) throw error;
+
+                        // 2. Kill actual active session registries
+                        await window.sb
+                            .from('login_sessions')
+                            .update({ ended_at: new Date().toISOString() })
+                            .neq('user_id', localStorage.getItem('user_id'))
+                            .is('ended_at', null);
 
                         Swal.fire('Purged', 'All other active sessions have been terminated from the cloud.', 'success');
                         fetchAndRenderSessions(); // re-sync
@@ -180,13 +188,20 @@ function handleDisconnectUser(e) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
-                // Update specific user in Supabase
+                // 1. Mark visually offline on the admin grid
                 const { error } = await window.sb
                     .from('users')
                     .update({ is_online: false })
                     .eq('user_id', targetUserId);
 
                 if (error) throw error;
+
+                // 2. Terminate the actual login_session records natively so their local heartbeat catches it
+                await window.sb
+                    .from('login_sessions')
+                    .update({ ended_at: new Date().toISOString() })
+                    .eq('user_id', targetUserId)
+                    .is('ended_at', null);
 
                 Swal.fire('Disconnected', 'User session terminated from the cloud registry.', 'success')
                     .then(() => {
