@@ -35,11 +35,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             'ADMIN_FORCED_DISCONNECT': 'Revoked User Session',
             'GLOBAL_SESSION_PURGE': 'Purged All Active Sessions',
             'PROFILE_UPDATED': 'Updated Profile Information',
+            'SYSTEM_CONFIG_UPDATED': 'Modified Platform Configuration',
+            'SECURITY_PROTOCOL_TOGGLED': 'Toggled Security Protocol',
+            'SECURITY_CONFIG_UPDATED': 'Updated Security Parameter',
+            'NOTIFICATION_SETTING_CHANGED': 'Changed Notification Priority',
+            'MAINTENANCE_MODE_ACTIVATED': 'Platform Lockdown Engaged',
+            'FACTORY_RESET_INITIATED': 'System Factory Reset',
             'EMAIL_UPDATED': 'Changed Account Email',
             'PASSWORD_UPDATED': 'Changed Account Password',
             'CATALOG_ENTRY_ADDED': 'Added Service Catalog Item',
             'CATALOG_ENTRY_DELETED': 'Removed Service Catalog Item',
             'TICKET_CREATED': 'Scheduled New Repair Job',
+            'TICKET_STATUS_UPDATED': 'Updated Repair Status',
             'USER_PROVISIONED': 'Provisioned New Account',
             'USER_STATUS_TOGGLED': 'Changed User Access Status',
             'USER_CONFIG_UPDATED': 'Modified User Configuration',
@@ -90,6 +97,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
+            // Ensure Config is available
+            if (!window.systemConfig) {
+                const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).single();
+                if (config) window.systemConfig = config;
+            }
+
+            const limit = window.systemConfig?.audit_limit || 50;
+
             const { data: logs, error } = await window.sb
                 .from('audit_logs')
                 .select(`
@@ -105,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     )
                 `)
                 .order('trace_time', { ascending: false })
-                .limit(200);
+                .limit(limit);
 
             if (error) throw error;
 
@@ -155,13 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let html = '';
         logs.forEach(log => {
-            const date = new Date(log.trace_time);
-
-            // Format: Jan 22, 2026 - 02:45 PM
-            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-                '<br><span class="text-main opacity-75 small">' +
-                date.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' }) +
-                '</span>';
+            const formattedDate = window.formatDateTime ? window.formatDateTime(log.trace_time) : new Date(log.trace_time).toLocaleString();
 
             // Clean colors based on severity
             let sev = (log.severity || 'info').toLowerCase();

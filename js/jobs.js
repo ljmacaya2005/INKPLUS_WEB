@@ -68,9 +68,7 @@ async function fetchAndRenderJobs() {
             const customerName = ticket.customers ? `${ticket.customers.first_name} ${ticket.customers.last_name}` : 'Unknown';
             const customerPhone = ticket.customers?.phone_number || 'N/A';
             const brand = ticket.device_brand || '';
-            const createdDate = new Date(ticket.created_at).toLocaleString('en-US', {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-            });
+            const createdDate = window.formatDateTime ? window.formatDateTime(ticket.created_at) : new Date(ticket.created_at).toLocaleString();
 
             // Map UI Badge Colors based on status
             let badgeClass = 'bg-secondary';
@@ -81,54 +79,54 @@ async function fetchAndRenderJobs() {
 
             htmlPayload += `
                 <div class="col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden transition-all hover-lift bg-body-tertiary border border-light border-opacity-10" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
                         
                         <!-- Top Progress Bar (Visual indicator) -->
-                        <div class="position-absolute top-0 start-0 w-100 ${badgeClass}" style="height: 6px;"></div>
+                        <div class="position-absolute top-0 start-0 w-100 shadow-sm" style="height: 6px; background-color: var(--bs-${badgeClass.includes('warning') ? 'warning' : badgeClass.includes('info') ? 'info' : badgeClass.includes('success') ? 'success' : badgeClass.includes('primary') ? 'primary' : 'secondary'});"></div>
                         
-                        <div class="card-body p-4 pt-4">
+                        <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>
-                                    <h6 class="fw-bold mb-1">${customerName}</h6>
-                                    <p class="small text-secondary mb-0"><i class="text-primary font-monospace">${ticket.ticket_code}</i></p>
+                                    <h5 class="fw-black mb-1 text-main tracking-tight" style="font-weight: 800;">${customerName}</h5>
+                                    <p class="small text-secondary mb-0"><i class="text-primary fw-bold font-monospace">${ticket.ticket_code}</i></p>
                                 </div>
-                                <span class="badge ${badgeClass} rounded-pill px-3 py-2 shadow-sm">${ticket.status}</span>
+                                <span class="badge ${badgeClass} rounded-pill px-3 py-2 shadow-sm fw-bold" style="letter-spacing: 0.5px; font-size: 0.70rem;">${ticket.status.toUpperCase()}</span>
                             </div>
 
-                            <div class="bg-light bg-opacity-50 p-3 rounded-3 mb-3 border border-light">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="small text-secondary fw-bold text-uppercase">Device</span>
-                                    <span class="small fw-bold">${brand} ${ticket.device_model}</span>
+                            <div class="p-3 rounded-4 mb-4 shadow-sm" style="background: rgba(var(--bs-primary-rgb), 0.04); border: 1px solid rgba(var(--bs-primary-rgb), 0.08);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Device</span>
+                                    <span class="small fw-bold text-main">${brand} ${ticket.device_model}</span>
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="small text-secondary fw-bold text-uppercase">Category</span>
-                                    <span class="small fw-bold text-end">${ticket.service_category}</span>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Category</span>
+                                    <span class="small fw-bold text-main text-end">${ticket.service_category}</span>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="small text-secondary fw-bold text-uppercase">Contact</span>
-                                    <span class="small fw-bold">${customerPhone}</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contact</span>
+                                    <span class="small fw-bold text-main font-monospace">${customerPhone}</span>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <p class="small text-secondary fw-bold text-uppercase mb-2">Issue / Description</p>
-                                <p class="small text-dark mb-0 text-truncate" style="max-height: 40px; overflow: hidden;" title="${ticket.issue_description}">${ticket.issue_description || 'No description provided.'}</p>
+                                <p class="small text-secondary fw-bold text-uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">Issue / Description</p>
+                                <p class="small text-main mb-0 text-truncate fst-italic" style="max-height: 40px; overflow: hidden;" title="${ticket.issue_description}">"${ticket.issue_description || 'No description provided.'}"</p>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light border-opacity-10">
-                                <div class="small text-secondary">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-4 border-top border-light border-opacity-10">
+                                <div class="small text-secondary fw-medium d-flex align-items-center" style="font-size: 0.75rem;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-2 text-primary opacity-75" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                     ${createdDate}
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-sm hover-lift" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View
+                                    <button class="btn btn-sm btn-light border-0 rounded-pill px-3 shadow-sm hover-lift text-main fw-bold" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}" style="background: rgba(var(--bs-primary-rgb), 0.1);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View
                                     </button>
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm hover-lift update-status-btn" 
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm hover-lift fw-bold update-status-btn" 
                                         data-id="${ticket.ticket_id}" 
                                         data-code="${ticket.ticket_code}" 
                                         data-status="${ticket.status}">
-                                        Update
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M2 12h4l2-9 5 18 2-9h4"></path></svg> Update
                                     </button>
                                 </div>
                             </div>
@@ -194,6 +192,15 @@ function handleStatusUpdate(e) {
 
                 if (error) throw error;
 
+                // Fire Telemetry Action
+                if (window.logAction) {
+                    window.logAction('TICKET_STATUS_UPDATED', 'scheduling.engine', {
+                        ticket_code: ticketCode,
+                        previous_status: currentStatus,
+                        new_status: newStatus
+                    }, 'info');
+                }
+
                 Swal.fire('Updated!', `Ticket ${ticketCode} moved to <b>${newStatus}</b>.`, 'success')
                     .then(() => {
                         // Refresh view
@@ -207,6 +214,7 @@ function handleStatusUpdate(e) {
         }
     });
 }
+
 
 // Global: Open Job Details Panel
 window.viewJobPanel = function (btn) {
@@ -271,3 +279,20 @@ window.viewJobPanel = function (btn) {
         Swal.fire('Error', 'Could not open job panel.', 'error');
     }
 }
+
+// Global Job UI Filtering
+window.filterJobs = function (query) {
+    query = query.toLowerCase();
+    const cards = document.querySelectorAll('#jobs-container > div');
+
+    cards.forEach(card => {
+        const textContent = card.innerText.toLowerCase();
+        if (textContent.includes(query)) {
+            card.style.display = '';
+            card.classList.add('animate__fadeIn');
+        } else {
+            card.style.display = 'none';
+            card.classList.remove('animate__fadeIn');
+        }
+    });
+};

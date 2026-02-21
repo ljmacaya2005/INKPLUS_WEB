@@ -238,46 +238,65 @@
                                     </div>
                                     <form id="settingsForm">
                                         <div class="row g-4 mb-4">
-                                            <div class="col-md-6">
-                                                <label
-                                                    class="form-label fw-bold small text-uppercase opacity-75">Platform
-                                                    Name</label>
-                                                <input type="text" class="form-control"
-                                                    value="INKPlus Management Console">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold small text-uppercase opacity-75">System
-                                                    Identifier</label>
-                                                <input type="text" class="form-control" value="PROD-MAESTRO-01"
-                                                    readonly>
-                                            </div>
-                                            <div class="col-12">
-                                                <label
-                                                    class="form-label fw-bold small text-uppercase opacity-75">Operational
-                                                    Email</label>
-                                                <input type="email" class="form-control" value="ops@inkplus.com">
-                                            </div>
+
                                             <div class="col-md-6">
                                                 <label
                                                     class="form-label fw-bold small text-uppercase opacity-75">Region/Timezone</label>
-                                                <select class="form-select">
-                                                    <option selected>Universal Time (UTC+0)</option>
-                                                    <option>Manila/Singapore (UTC+8)</option>
-                                                    <option>New York (UTC-5)</option>
+                                                <select class="form-select bg-glass-input" id="timezone">
+                                                    <option value="UTC+0" selected>Universal Time (UTC+0)</option>
+                                                    <option value="UTC+8">Manila/Singapore (UTC+8)</option>
+                                                    <option value="UTC-5">New York (UTC-5)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-6">
-                                                <label class="form-label fw-bold small text-uppercase opacity-75">Data
+                                                <label class="form-label fw-bold small text-uppercase opacity-75">Date
                                                     Format</label>
-                                                <select class="form-select">
-                                                    <option>YYYY-MM-DD</option>
-                                                    <option selected>DD-MM-YYYY</option>
-                                                    <option>MM-DD-YYYY</option>
+                                                <select class="form-select bg-glass-input" id="dateFormat">
+                                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                                    <option value="DD-MM-YYYY" selected>DD-MM-YYYY</option>
+                                                    <option value="MM-DD-YYYY">MM-DD-YYYY</option>
                                                 </select>
                                             </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small text-uppercase opacity-75">Time
+                                                    Format</label>
+                                                <select class="form-select bg-glass-input" id="timeFormat">
+                                                    <option value="12h">12-Hour (12:00 PM)</option>
+                                                    <option value="24h" selected>24-Hour (00:00)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small text-uppercase opacity-75">Audit
+                                                    Display Limit</label>
+                                                <input type="number" class="form-control bg-glass-input" id="auditLimit"
+                                                    min="1" max="1000" placeholder="Records count">
+                                                <div class="form-text small opacity-50">Custom number of records to
+                                                    fetch (Max: 1000).</div>
+                                            </div>
+                                            <div class="col-12 mt-3">
+                                                <div
+                                                    class="p-3 rounded-4 bg-light bg-opacity-10 border border-light border-opacity-10 transition-all hover-lift">
+                                                    <div
+                                                        class="form-check form-switch-premium d-flex align-items-center m-0">
+                                                        <input class="form-check-input security-toggle me-3"
+                                                            type="checkbox" id="splashEnabled" checked
+                                                            data-key="splash_enabled">
+                                                        <label
+                                                            class="form-check-label fw-bold small text-uppercase opacity-75 mb-0"
+                                                            for="splashEnabled" style="cursor:pointer">Enable System
+                                                            Splash Screen</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow">Sync
-                                            Global Config</button>
+                                        <button type="submit" id="btnSyncGlobal"
+                                            class="btn btn-primary px-5 py-2 rounded-pill shadow d-inline-flex align-items-center gap-2">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.26l5.08 5.08" />
+                                            </svg>
+                                            <span>Sync Global Config</span>
+                                        </button>
                                     </form>
                                 </div>
 
@@ -289,39 +308,54 @@
                                             standards.</p>
                                     </div>
                                     <div class="list-group list-group-flush bg-transparent">
+
                                         <div
-                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-4 border-light border-opacity-10">
-                                            <div class="pe-3">
-                                                <div class="fw-bold h6 mb-1">Forced 2FA Protocol</div>
-                                                <div class="small text-secondary">Require all administrative accounts to
-                                                    use multi-factor authentication.</div>
+                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-3 py-4 rounded-4 bg-light bg-opacity-10 border border-light border-opacity-10 mb-3">
+                                            <div class="pe-3 d-flex align-items-start gap-3">
+                                                <div class="bg-info bg-opacity-10 text-info p-2 rounded-circle mt-1">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round">
+                                                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <label class="fw-bold h6 mb-1 d-block" for="auditPersistence"
+                                                        style="cursor:pointer">Deep Audit Persistence</label>
+                                                    <div class="small text-secondary">Extend log retention to 180 days
+                                                        for
+                                                        exhaustive forensic review.</div>
+                                                </div>
                                             </div>
                                             <div class="form-check form-switch-premium">
-                                                <input class="form-check-input" type="checkbox" checked>
+                                                <input class="form-check-input security-toggle" type="checkbox"
+                                                    id="auditPersistence" data-key="audit_persistence">
                                             </div>
                                         </div>
                                         <div
-                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-4 border-light border-opacity-10">
-                                            <div class="pe-3">
-                                                <div class="fw-bold h6 mb-1">Deep Audit Persistence</div>
-                                                <div class="small text-secondary">Extend log retention to 180 days for
-                                                    exhaustive forensic review.</div>
+                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-3 py-4 rounded-4 bg-light bg-opacity-10 border border-light border-opacity-10">
+                                            <div class="pe-3 d-flex align-items-start gap-3">
+                                                <div
+                                                    class="bg-warning bg-opacity-10 text-warning p-2 rounded-circle mt-1">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold h6 mb-1">Auto-Lock Threshold</div>
+                                                    <div class="small text-secondary">Inactivity duration before current
+                                                        session is terminated.</div>
+                                                </div>
                                             </div>
-                                            <div class="form-check form-switch-premium">
-                                                <input class="form-check-input" type="checkbox">
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-4 border-0">
-                                            <div class="pe-3">
-                                                <div class="fw-bold h6 mb-1">Auto-Lock Threshold</div>
-                                                <div class="small text-secondary">Inactivity duration before current
-                                                    session is terminated.</div>
-                                            </div>
-                                            <select class="form-select w-auto bg-glass-input">
-                                                <option>10 min</option>
-                                                <option selected>30 min</option>
-                                                <option>2 hours</option>
+                                            <select class="form-select w-auto bg-glass-input" id="lockThreshold">
+                                                <option value="10">10 min</option>
+                                                <option value="30" selected>30 min</option>
+                                                <option value="120">2 hours</option>
                                             </select>
                                         </div>
                                     </div>
@@ -337,36 +371,31 @@
                                     <div class="row g-4">
                                         <div class="col-12 col-md-6">
                                             <div
-                                                class="p-3 rounded-3 bg-light bg-opacity-10 border border-light border-opacity-10">
-                                                <h6 class="fw-bold mb-3">Operational Alerts</h6>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" checked id="not-1">
-                                                    <label class="form-check-label small" for="not-1">Transaction
+                                                class="p-4 rounded-4 bg-light bg-opacity-10 border border-light border-opacity-10 h-100">
+                                                <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                        class="text-info" stroke="currentColor" stroke-width="2">
+                                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                                                    </svg>
+                                                    Operational Alerts
+                                                </h6>
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input notification-toggle" type="checkbox"
+                                                        checked id="not-1" data-key="notif_transactions">
+                                                    <label class="form-check-label small" for="not-1"
+                                                        style="cursor:pointer">Transaction
                                                         completions</label>
                                                 </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" checked id="not-2">
-                                                    <label class="form-check-label small" for="not-2">New user
+                                                <div class="form-check form-switch mb-2">
+                                                    <input class="form-check-input notification-toggle" type="checkbox"
+                                                        checked id="not-2" data-key="notif_new_users">
+                                                    <label class="form-check-label small" for="not-2"
+                                                        style="cursor:pointer">New user
                                                         onboarding</label>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-6">
-                                            <div
-                                                class="p-3 rounded-3 bg-light bg-opacity-10 border border-light border-opacity-10">
-                                                <h6 class="fw-bold mb-3">Critical Telemetry</h6>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" checked id="not-3">
-                                                    <label class="form-check-label small" for="not-3">Security
-                                                        breaches</label>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" id="not-4">
-                                                    <label class="form-check-label small" for="not-4">Hardware fault
-                                                        SMS</label>
-                                                </div>
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </div>
 
@@ -378,18 +407,26 @@
                                             extreme caution.</p>
                                     </div>
                                     <div class="alert alert-danger-soft border-0 mb-4">
-                                        <h6 class="fw-bold mb-1">Maintenance Mode</h6>
-                                        <p class="small mb-2">Disable all public access to the platform for scheduled
-                                            maintenance.</p>
-                                        <button class="btn btn-outline-danger btn-sm px-4">Activate Deep
-                                            Lockdown</button>
+                                        <div
+                                            class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-0">
+                                            <div class="pe-3">
+                                                <div class="fw-bold h6 mb-1 text-danger">Deep System Lockdown</div>
+                                                <div class="small text-secondary">Disable all public access. Only
+                                                    administrators can enter the platform.</div>
+                                            </div>
+                                            <div class="form-check form-switch-premium">
+                                                <input class="form-check-input security-toggle" type="checkbox"
+                                                    id="maintenanceMode" data-key="maintenance_mode">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div
                                         class="p-4 rounded-3 border border-danger border-opacity-25 bg-danger bg-opacity-10">
                                         <h6 class="fw-bold text-danger mb-1">Factory Reset System</h6>
                                         <p class="small text-secondary mb-3">Clear all database tables, wipe session
                                             history, and reset global states.</p>
-                                        <button class="btn btn-danger px-4">Hard Reset Platform</button>
+                                        <button class="btn btn-danger px-4" id="btnFactoryReset">Hard Reset
+                                            Platform</button>
                                     </div>
                                 </div>
                             </div>

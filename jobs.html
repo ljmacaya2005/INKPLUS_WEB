@@ -175,11 +175,42 @@
 
             <div class="container-fluid px-4">
                 <div class="dashboard-card p-4 animate__animated animate__fadeInUp">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-bold mb-0">Active Jobs</h4>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm">Filter</button>
-                            <button class="btn btn-primary btn-sm">New Job</button>
+                    <div
+                        class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+                        <div>
+                            <h4 class="fw-black mb-1 tracking-tight" style="font-size: 1.75rem;">Active Jobs</h4>
+                            <p class="text-secondary small mb-0 fw-medium">Real-time overview of current diagnostic and
+                                repair operations.</p>
+                        </div>
+                        <div
+                            class="d-flex gap-3 align-items-center bg-body-tertiary p-2 rounded-pill border border-light border-opacity-10 shadow-sm transition-all hover-lift">
+                            <div class="input-group input-group-sm outline-none border-0" style="width: 200px;">
+                                <span class="input-group-text bg-transparent border-0 text-secondary" id="searchIcon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </span>
+                                <input type="text"
+                                    class="form-control bg-transparent border-0 fw-medium shadow-none outline-none text-main"
+                                    placeholder="Search ticket..." aria-describedby="searchIcon"
+                                    style="font-size: 0.85rem;"
+                                    onkeyup="if(window.filterJobs) window.filterJobs(this.value)">
+                            </div>
+                            <div style="width: 1px; height: 20px; background-color: rgba(var(--bs-primary-rgb), 0.2);">
+                            </div>
+                            <button
+                                class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold hover-lift d-flex align-items-center"
+                                onclick="window.location.href='scheduling.html'">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-2"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                New Job
+                            </button>
                         </div>
                     </div>
 

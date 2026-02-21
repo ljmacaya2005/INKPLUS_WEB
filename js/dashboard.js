@@ -211,6 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+
+        // --- ENFORCE SYSTEM POLICIES (Settings Sync) ---
+        window.initSystemPolicies(sb, isAdmin);
     };
 
     // --- Dashboard Data Fetch ---
@@ -329,8 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const custObj = Array.isArray(t.customers) ? t.customers[0] : t.customers;
                 const custName = custObj ? `${custObj.first_name || ''} ${custObj.last_name || ''}`.trim() : 'Unknown Customer';
 
-                const dateObj = new Date(t.created_at);
-                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const dateStr = window.formatDateTime ? window.formatDateTime(t.created_at) : new Date(t.created_at).toLocaleDateString();
 
                 htmlPayload += `
                 <div class="col-12 animate__animated animate__fadeInUp" style="animation-delay: ${(i * 0.05).toFixed(2)}s">
@@ -372,6 +374,157 @@ document.addEventListener('DOMContentLoaded', () => {
     initRBAC();
     fetchDashboardStats();
 });
+
+// --- SYSTEM CONTROLLER: Settings & Policies ---
+window.initSystemPolicies = async (sb, isAdmin) => {
+    try {
+        const { data: config } = await sb.from('system_settings').select('*').eq('id', 1).single();
+        if (!config) return;
+
+        window.systemConfig = config; // Expose globally for date formatting
+
+        // 1. SYSTEM ISOLATION (Maintenance Mode / Deep Lockdown)
+        if (config.maintenance_mode && !isAdmin) {
+            document.body.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-dark text-white text-center p-5" style="background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);">
+                    <div class="mb-4 animate__animated animate__pulse animate__infinite" style="filter: drop-shadow(0 0 15px rgba(220, 53, 69, 0.4));">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <h1 class="fw-bold mb-3 tracking-widest text-uppercase">System Isolation Active</h1>
+                    <p class="lead opacity-75 mb-5 font-monospace" style="max-width: 600px;">The INKPlus platform is currently under deep maintenance. Access has been restricted to Administrative nodes only.</p>
+                    <button class="btn btn-outline-danger btn-lg rounded-pill px-5 shadow-sm" onclick="localStorage.clear(); location.replace('index.html')">Return to Surface</button>
+                    <div class="mt-5 small text-secondary">Node: ${config.system_id || 'PROD-CLUSTER'}</div>
+                </div>
+            `;
+            // Block all future execution on this page
+            throw new Error("[POLICY] System Locked");
+        }
+
+        // 2. SPLASH SCREEN (Once per session)
+        if (config.splash_enabled && !sessionStorage.getItem('splashShown')) {
+            const splash = document.createElement('div');
+            splash.id = 'systemSplash';
+            splash.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-gradient); background-attachment: fixed; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);';
+            splash.innerHTML = `
+                <div class="text-center animate__animated animate__fadeIn">
+                    <div class="mb-4 d-flex justify-content-center">
+                        <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items:center; justify-content:center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(74, 144, 164, 0.2);">
+                            <img src="assets/logo1.png" style="max-width:80px;" class="animate__animated animate__pulse animate__infinite">
+                        </div>
+                    </div>
+                    <h4 class="fw-bold tracking-widest text-uppercase mb-2" style="background: linear-gradient(45deg, #fff, rgba(255,255,255,0.5)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">INKPlus Console</h4>
+                    <div class="progress mt-4 bg-dark bg-opacity-50" style="height: 4px; width: 200px; border-radius: 10px; margin: 0 auto;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <p class="mt-3 text-secondary small fw-bold tracking-widest text-uppercase opacity-50">Synchronizing Environment...</p>
+                </div>
+            `;
+            document.body.style.overflow = 'hidden';
+            document.body.appendChild(splash);
+            sessionStorage.setItem('splashShown', 'true');
+
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                splash.style.transform = 'scale(1.1)';
+                document.body.style.overflow = '';
+                setTimeout(() => splash.remove(), 1000);
+            }, 2500);
+        }
+
+        // 3. AUTO-LOCK (Strict Inactivity Compliance)
+        const thresholdSelectValue = config.lock_threshold || '30';
+        const timeoutMs = parseInt(thresholdSelectValue) * 60 * 1000;
+        let idleTimer;
+        let lastActivity = Date.now();
+
+        const logoutUser = async () => {
+            const timeSinceLastActivity = Date.now() - lastActivity;
+            // Additional fallback check to ensure strictly timeoutMs has passed
+            if (timeSinceLastActivity >= timeoutMs) {
+                // Terminate session record via telemetry explicitly
+                const userId = localStorage.getItem('user_id');
+                const sessionId = localStorage.getItem('session_record_id');
+
+                if (window.logAction) {
+                    await window.logAction('AUTO_LOGOUT_TRIGGERED', 'user.security', { event: 'Inactivity Threshold Crossed', threshold_minutes: thresholdSelectValue }, 'warning');
+                }
+
+                if (sessionId && window.sb) {
+                    await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId);
+                }
+
+                if (userId && window.sb) {
+                    await window.sb.from('users').update({ is_online: false }).eq('user_id', userId);
+                }
+
+                Swal.fire({
+                    title: 'Security Timeout',
+                    text: 'Your session has been terminated due to compliance inactivity.',
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.isNavigatingInternal = false;
+                    localStorage.clear();
+                    location.replace('index.html');
+                });
+            } else {
+                resetIdleTimer(); // False positive, recalculate
+            }
+        };
+
+        const resetIdleTimer = () => {
+            lastActivity = Date.now();
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(logoutUser, timeoutMs);
+        };
+
+        // Events to reset the timer (throttle for performance)
+        let debounceTimer;
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+            window.addEventListener(evt, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(resetIdleTimer, 500);
+            }, { passive: true });
+        });
+        resetIdleTimer();
+
+    } catch (err) {
+        if (err.message !== "[POLICY] System Locked") {
+            console.warn("[SystemPolicies] Error:", err);
+        }
+    }
+};
+
+// --- GLOBAL DATE/TIME FORMATTER ---
+window.formatDateTime = (isoString) => {
+    if (!isoString) return 'N/A';
+    const config = window.systemConfig || {};
+    const date = new Date(isoString);
+
+    // Fallback options
+    const locale = 'en-US';
+    const tz = config.timezone === 'UTC+8' ? 'Asia/Singapore' : (config.timezone === 'UTC-5' ? 'America/New_York' : 'UTC');
+    const hc = config.time_format === '12h' ? 'h12' : 'h23';
+
+    try {
+        return date.toLocaleString(locale, {
+            timeZone: tz,
+            hourCycle: hc,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).replace(/\//g, '-');
+    } catch (e) {
+        return date.toISOString().replace('T', ' ').split('.')[0];
+    }
+};
 
 // Global Fullscreen Toggle
 window.toggleFullScreen = function () {

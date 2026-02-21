@@ -71,6 +71,17 @@
     border-color: var(--primary-color) !important;
 }
 
+/* Fix for dropdown visibility (Options color) */
+.form-select option {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="light"] .form-select option {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
 /* Alert Variations */
 .alert-info-soft {
     background: rgba(107, 179, 199, 0.1);

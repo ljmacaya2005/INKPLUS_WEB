@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const latestEl = document.getElementById('stat-latest-date');
             if (latestEl && allArchiveTickets.length > 0) {
-                const latestDate = new Date(allArchiveTickets[0].updated_at || allArchiveTickets[0].created_at);
-                latestEl.innerText = latestDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const dateInput = allArchiveTickets[0].updated_at || allArchiveTickets[0].created_at;
+                latestEl.innerText = window.formatDateTime ? window.formatDateTime(dateInput) : new Date(dateInput).toLocaleDateString();
             } else if (latestEl) {
                 latestEl.innerText = "N/A";
             }
@@ -104,9 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const model = ticket.device_model || '';
 
             // Format to a clean date
-            const finishedDate = new Date(ticket.updated_at || ticket.created_at).toLocaleString('en-US', {
-                month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
-            });
+            const dateStr = window.formatDateTime ? window.formatDateTime(ticket.updated_at || ticket.created_at) : new Date(ticket.updated_at || ticket.created_at).toLocaleDateString();
 
             const badgeClass = 'bg-success text-white shadow-sm';
 

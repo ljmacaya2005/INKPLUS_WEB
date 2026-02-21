@@ -1,53 +1,102 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 	const splash = document.getElementById('splash');
 	const loginCard = document.getElementById('loginCard');
-
-
-	// Clear inputs on load
 	const uInput = document.getElementById('email');
 	const pInput = document.getElementById('password');
+
+	// Clear inputs on load
 	if (uInput) uInput.value = '';
 	if (pInput) pInput.value = '';
-	const splashDuration = 2800; // Total display time
 
-	setTimeout(() => {
-		if (splash) {
-			splash.classList.add('hidden');
+	const waitForSupabase = () => {
+		return new Promise(resolve => {
+			if (window.sb) return resolve();
+			const interval = setInterval(() => {
+				if (window.sb) {
+					clearInterval(interval);
+					resolve();
+				}
+			}, 100);
+		});
+	};
+
+	const initializeView = async () => {
+		await waitForSupabase();
+
+		let splashEnabled = true;
+		let maintenanceMode = false;
+
+		try {
+			const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).single();
+			if (config) {
+				splashEnabled = config.splash_enabled ?? true;
+				maintenanceMode = config.maintenance_mode || false;
+
+				// Global config for login logic
+				window.systemConfig = config;
+			}
+		} catch (e) {
+			console.warn("Settings check failed, using defaults.");
 		}
 
-		// 3. Animate in the main content after the splash screen starts to fade out.
-		// This delay should be slightly less than the splash screen's CSS transition duration.
-		setTimeout(() => {
-			// Animate login card
+		const hideSplash = () => {
+			if (splash) splash.classList.add('hidden');
+			setTimeout(() => {
+				if (loginCard) {
+					loginCard.classList.add('show');
+					if (uInput) uInput.focus();
+				}
+			}, 300);
+		};
+
+		if (splashEnabled) {
+			if (splash) splash.style.display = 'flex'; // Explicitly reveal only if enabled
+			const splashDuration = 2200;
+			setTimeout(hideSplash, splashDuration);
+		} else {
+			// If disabled, bypass splash delay and show login card instantly
+			if (splash) splash.style.display = 'none';
 			if (loginCard) {
 				loginCard.classList.add('show');
-				if (uInput) uInput.focus(); // Automatically focus the username input
+				if (uInput) uInput.focus();
 			}
+		}
 
-
-
-		}, 300); // Start content animation 300ms after splash fade begins
-
-	}, splashDuration);
-
-	// --- Generic Password Toggle Logic (exposed globally for inline onclicks) ---
-	window.togglePassword = function (inputId, btn) {
-		const input = document.getElementById(inputId);
-		if (!input) return;
-
-		const isHidden = input.type === 'password';
-		input.type = isHidden ? 'text' : 'password';
-
-		const hiddenIcon = btn.querySelector('.eye-hidden');
-		const visibleIcon = btn.querySelector('.eye-visible');
-
-		if (hiddenIcon && visibleIcon) {
-			hiddenIcon.style.display = isHidden ? 'none' : 'block';
-			visibleIcon.style.display = isHidden ? 'block' : 'none';
+		// Maintenance Warning
+		if (maintenanceMode) {
+			Swal.fire({
+				toast: true,
+				position: 'top',
+				icon: 'warning',
+				title: 'System Isolation Active',
+				text: 'Only Administrative nodes can currently access the platform.',
+				showConfirmButton: false,
+				timer: 6000
+			});
 		}
 	};
 
+	initializeView();
 });
+
+// --- Generic Password Toggle Logic (exposed globally for inline onclicks) ---
+window.togglePassword = function (inputId, btn) {
+	const input = document.getElementById(inputId);
+	if (!input) return;
+
+	const isHidden = input.type === 'password';
+	input.type = isHidden ? 'text' : 'password';
+
+	const hiddenIcon = btn.querySelector('.eye-hidden');
+	const visibleIcon = btn.querySelector('.eye-visible');
+
+	if (hiddenIcon && visibleIcon) {
+		hiddenIcon.style.display = isHidden ? 'none' : 'block';
+		visibleIcon.style.display = isHidden ? 'block' : 'none';
+	}
+};
+
+
 
 // Function to show Terms of Service modal using SweetAlert2
 function showTermsModal(event) {
