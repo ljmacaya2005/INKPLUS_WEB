@@ -17,118 +17,473 @@
     <link rel="stylesheet" href="css/login.css"> <!-- Reuse login styles for background/card -->
 
     <style>
-        /* Specific tweaks for tracker */
+        /* Premium Tracker Glassmorphism Ecosystem */
         .status-card {
             display: none;
-            /* Hidden by default */
         }
 
-        .status-badge-lg {
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
+        @keyframes trackerEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.96);
+            }
+
+            60% {
+                opacity: 0.8;
+                transform: translateY(-5px) scale(1.01);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        /* FIX: login.css hides .login-card by default (for splash animation). 
-           We accept animate.css control here, so we reset it. */
-        .login-card,
-        .login-card .brand,
-        .login-card .desc,
-        .login-card .mb-3,
-        .login-card .mb-4,
-        .login-card .d-grid,
-        .login-card .legal-text {
-            opacity: 1 !important;
-            transform: none !important;
+        /* login-card Overrides for standalone tracker */
+        .login-card {
+            visibility: visible !important;
+            animation: trackerEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            border-radius: 28px !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+            /* Extremely subtle white tint */
+            backdrop-filter: blur(35px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            /* Edge light */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 50px rgba(74, 144, 164, 0.2) !important;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease !important;
+            overflow: visible;
         }
 
-        .brand-text {
-            color: var(--brand-color);
+        [data-theme="light"] .login-card {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 0 50px rgba(74, 144, 164, 0.4) !important;
         }
 
-        /* FIX: High contrast placeholder */
+        .login-card:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 80px rgba(74, 144, 164, 0.55) !important;
+        }
+
+        [data-theme="light"] .login-card:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 80px rgba(74, 144, 164, 0.6) !important;
+        }
+
+        @keyframes slideUpStagger {
+            0% {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Staggered Smooth Sliding In-Animation */
+        .login-card>* {
+            opacity: 0;
+            animation: slideUpStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .login-card>*:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .login-card>*:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .login-card>*:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .login-card>*:nth-child(4) {
+            animation-delay: 0.5s;
+        }
+
+        .login-card>*:nth-child(5) {
+            animation-delay: 0.6s;
+        }
+
+        /* Aesthetic Input Forms */
+        .input-group-lg {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-group-lg:focus-within {
+            border-color: rgba(13, 202, 240, 0.4);
+            box-shadow: 0 0 20px rgba(13, 202, 240, 0.2);
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
         #ticketIdInput::placeholder {
             color: var(--text-color) !important;
-            opacity: 0.7 !important;
-            /* Make it clearly visible but distinct from input */
+            opacity: 0.4 !important;
+        }
+
+        #ticketIdInput:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Premium Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #4A90A4, #357688);
+            border: none;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5CA4B8, #3F8498);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(74, 144, 164, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        /* Status Indicator Box Elevate */
+        .status-indicator {
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] .status-indicator {
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+
+        /* Brand Animations */
+        @keyframes subtleBreath {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 5px rgba(74, 144, 164, 0.2));
+            }
+
+            50% {
+                transform: scale(1.04);
+                filter: drop-shadow(0 0 15px rgba(74, 144, 164, 0.5));
+            }
+        }
+
+        .login-card img.img-fluid {
+            animation: subtleBreath 4s ease-in-out infinite;
+        }
+
+        /* Spectacular Stepper */
+        .tracker-stepper {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .tracker-stepper::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+            z-index: 0;
+            border-radius: 2px;
+        }
+
+        .tracker-progress-line {
+            position: absolute;
+            top: 22px;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background-color: var(--primary-color, #4A90A4);
+            box-shadow: 0 0 10px rgba(74, 144, 164, 0.6);
+            z-index: 1;
+            border-radius: 2px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tracker-step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+            color: var(--desc-color);
+            transition: color 0.4s ease;
+        }
+
+        .tracker-step.active,
+        .tracker-step.completed {
+            color: var(--text-color);
+        }
+
+        .step-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            border: 3px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--desc-color);
+        }
+
+        .tracker-step.active .step-circle {
+            border-color: var(--primary-color, #4A90A4);
+            background-color: var(--input-bg);
+            color: var(--primary-color, #4A90A4);
+            box-shadow: 0 0 0 6px rgba(74, 144, 164, 0.15), 0 0 15px rgba(74, 144, 164, 0.4);
+            transform: scale(1.1);
+        }
+
+        .tracker-step.completed .step-circle {
+            background-color: var(--primary-color, #4A90A4);
+            border-color: var(--primary-color, #4A90A4);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(74, 144, 164, 0.3);
+        }
+
+        .step-label {
+            font-size: 0.61rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1;
+            white-space: nowrap;
+            letter-spacing: -0.015rem;
+            margin-top: 5px;
+        }
+
+        /* Add pulsing effect to active step */
+        @keyframes stepPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(74, 144, 164, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(74, 144, 164, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(74, 144, 164, 0);
+            }
+        }
+
+        .tracker-step.active .step-circle {
+            animation: stepPulse 2s infinite;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 576px) {
+            .step-label {
+                font-size: 0.51rem;
+                line-height: 1;
+                letter-spacing: -0.02rem;
+                margin-top: 4px;
+            }
+
+            .step-circle {
+                width: 32px;
+                height: 32px;
+                border-width: 2px;
+            }
+
+            .tracker-stepper::before,
+            .tracker-progress-line {
+                top: 16px;
+            }
+
+            .tracker-step {
+                width: 25%;
+            }
         }
     </style>
     <script src="js/sweetalert2.all.min.js"></script>
 </head>
 
 <body>
-
-
+    <div id="splash" role="dialog" aria-label="Loading INKPlus" style="display: none;">
+        <div class="splash-content text-center">
+            <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid mb-3 splash-logo">
+            <div class="splash-progress-container mx-auto">
+                <div class="splash-progress-bar"></div>
+            </div>
+        </div>
+    </div>
     <main class="login-wrapper min-vh-100">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-12 col-md-8 col-lg-6 col-xl-5">
 
                     <!-- Main Search Card -->
-                    <div class="login-card animate__animated animate__fadeInUp p-5 shadow-lg" id="searchCard">
-                        <div class="text-center mb-4">
-                            <a href="index.html">
-                                <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid mb-3"
+                    <div class="login-card animate__animated animate__fadeInUp p-4 p-md-5 shadow-lg mx-auto"
+                        id="searchCard" style="max-width: 600px; width: 100%;">
+                        <div class="text-center mb-5 mt-2">
+                            <a href="tracker.html">
+                                <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid mb-4"
                                     style="max-width: 150px;">
                             </a>
-                            <h3 class="fw-bold" style="color: var(--text-color);">Repair Status Tracker</h3>
-                            <p style="color: var(--text-color); opacity: 0.9;">Enter your reference code to check
-                                progress.</p>
+                            <h3 class="fw-bold mt-2 text-uppercase"
+                                style="color: var(--text-color); letter-spacing: 3px; font-size: 1.4rem;">Repair Status
+                                Tracker</h3>
+                            <p class="small" style="color: var(--text-color); opacity: 0.6; letter-spacing: 0.5px;">
+                                Enter your reference code to check progress.</p>
                         </div>
 
                         <form id="trackerForm">
-                            <div class="mb-4">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text border-end-0 fw-bold"
-                                        style="background-color: var(--input-bg); border-color: var(--input-border-color); color: var(--text-color);">#</span>
-                                    <input type="text" class="form-control border-start-0" id="ticketIdInput"
+                            <div class="mb-5">
+                                <div class="input-group input-group-lg shadow-none rounded-4 overflow-hidden">
+                                    <span class="input-group-text border-0 fw-bold"
+                                        style="background: transparent; color: var(--text-color); opacity: 0.7;">#</span>
+                                    <input type="text" class="form-control border-0 font-monospace" id="ticketIdInput"
                                         placeholder="INK-1001" required
-                                        style="text-transform: uppercase; color: var(--text-color); background-color: var(--input-bg);">
+                                        style="background: transparent; text-transform: uppercase; color: var(--text-color); letter-spacing: 2.5px;">
                                 </div>
                             </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg primary" id="btnSearch">
+                            <div class="d-grid mb-3">
+                                <button type="submit"
+                                    class="btn btn-primary btn-lg rounded-pill shadow-sm transition-all hover-lift"
+                                    id="btnSearch">
                                     Track Repair
                                 </button>
                             </div>
                         </form>
-
-                        <div class="text-center mt-4">
-                            <a href="index.html" class="text-decoration-none small"
-                                style="color: var(--text-color); opacity: 0.8;">
-                                &larr; Back to Login
-                            </a>
-                        </div>
                     </div>
 
-                    <!-- Result Card (Populated by JS) -->
-                    <div class="login-card animate__animated animate__fadeInUp mt-4 p-4 shadow-lg status-card"
-                        id="resultCard">
-                        <div class="text-center mb-4">
-                            <span class="badge bg-primary mb-2" id="resTicketId">INK-XXXX</span>
-                            <h4 class="fw-bold" id="resDevice" style="color: var(--text-color);">Device Name</h4>
-                            <p class="small" id="resDate" style="color: var(--text-color); opacity: 0.8;">Created: --
-                            </p>
+                    <!-- Result Card (Populated dynamically by JS) -->
+                    <div class="login-card animate__animated mt-3 p-3 p-md-4 shadow-lg mx-auto status-card"
+                        id="resultCard" style="max-width: 600px; width: 100%;">
+                        <div class="d-flex justify-content-between align-items-start mb-3 pb-2 border-bottom"
+                            style="border-color: rgba(255,255,255,0.1) !important;">
+                            <div>
+                                <span
+                                    class="badge px-3 py-2 rounded-pill font-monospace shadow-sm d-inline-flex align-items-center"
+                                    id="resTicketId"
+                                    style="background: rgba(74, 144, 164, 0.15); border: 1px solid rgba(74, 144, 164, 0.4); color: var(--text-color); box-shadow: 0 0 15px rgba(74,144,164,0.2) !important; letter-spacing: 1px;">INK-XXXX</span>
+                            </div>
+                            <div class="text-end">
+                                <p class="small mb-0" id="resDate" style="color: var(--text-color); opacity: 0.7;">
+                                    Dropped off: --</p>
+                                <p class="small fw-bold mt-1 mb-0 d-none" id="resExpectedDate"
+                                    style="color: var(--primary-color);">Expected:
+                                    <span id="valExpectedDate">--</span>
+                                </p>
+                            </div>
                         </div>
 
-                        <div class="status-indicator text-center p-4 rounded-3 mb-4"
-                            style="background-color: var(--input-bg); border: 1px solid var(--border-color);">
-                            <h2 class="fw-bold mb-0 text-primary" id="resStatus">Pending</h2>
-                            <p class="small mb-0" style="color: var(--text-color); opacity: 0.9;">Current Status</p>
+                        <div class="text-center mb-3 mt-1">
+                            <h5 class="fw-bold tracking-tight mb-2 d-flex justify-content-center align-items-center text-uppercase"
+                                id="resDevice" style="color: var(--text-color); letter-spacing: 1px;">
+                                Device Name
+                            </h5>
                         </div>
 
-                        <!-- Progress Steps (Optional visual) -->
-                        <div class="position-relative m-4">
-                            <div class="progress" style="height: 4px; background-color: var(--input-border-color);">
-                                <div class="progress-bar" role="progressbar" style="width: 0%;" id="resProgressBar">
+                        <div class="status-indicator text-center p-3 rounded-4 mb-4 shadow-sm transition-all"
+                            style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle shadow-sm mb-3 position-relative"
+                                style="width: 50px; height: 50px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" id="resStatusIcon"
+                                    stroke="currentColor" stroke-width="1.5" style="color: var(--primary-color);">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="fw-bold mb-2 tracking-tight text-uppercase" id="resStatus"
+                                style="letter-spacing: 2px; font-size: 1.2rem;">Pending</h3>
+                            <p class="small fw-medium mb-0 mx-auto" id="resStatusDesc"
+                                style="color: var(--text-color); opacity: 0.8; max-width: 380px; line-height: 1.4; font-size: 0.75rem;">
+                                Current Status
+                                Description</p>
+                        </div>
+
+                        <!-- Progress Steps Visual Wrapper -->
+                        <div class="tracker-stepper-container mb-4 px-0">
+                            <div class="tracker-stepper">
+                                <div class="tracker-progress-line" id="resProgressBar"></div>
+
+                                <div class="tracker-step" id="step-pending">
+                                    <div class="step-circle shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                            </path>
+                                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                        </svg>
+                                    </div>
+                                    <span class="step-label">Received</span>
+                                </div>
+
+                                <div class="tracker-step" id="step-diagnosing">
+                                    <div class="step-circle shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            <line x1="11" y1="8" x2="11" y2="14"></line>
+                                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                                        </svg>
+                                    </div>
+                                    <span class="step-label">Diagnosing</span>
+                                </div>
+
+                                <div class="tracker-step" id="step-repairing">
+                                    <div class="step-circle shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <span class="step-label">Repairing</span>
+                                </div>
+
+                                <div class="tracker-step" id="step-ready">
+                                    <div class="step-circle shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </div>
+                                    <span class="step-label">Ready</span>
+                                </div>
+
+                                <div class="tracker-step" id="step-completed">
+                                    <div class="step-circle shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="step-label">Completed</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button class="btn btn-outline-secondary" onclick="resetTracker()"
-                                style="color: var(--text-color); border-color: var(--border-color);">Check
-                                Another</button>
+                        <div class="d-grid px-2">
+                            <button
+                                class="btn btn-outline-secondary btn-lg rounded-pill fw-medium transition-all hover-lift"
+                                onclick="resetTracker()">
+                                Check Another Ticket
+                            </button>
                         </div>
                     </div>
 
@@ -169,11 +524,11 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
 
-
-
     <script src="js/color-modes.js?v=2.0" defer></script>
+    <script src="js/supabase-config.js" defer></script>
     <script src="js/tracker.js?v=2.0" defer></script>
 </body>
 

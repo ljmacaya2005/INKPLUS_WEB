@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     *,
                     customers (first_name, last_name, phone_number)
                 `)
-                .eq('status', 'Done')
+                .in('status', ['Done', 'Completed', 'Failed', 'Cancelled', 'Unrepairable', 'Refunded'])
                 .order('updated_at', { ascending: false });
 
             if (error) throw error;
@@ -65,6 +65,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 latestEl.innerText = window.formatDateTime ? window.formatDateTime(dateInput) : new Date(dateInput).toLocaleDateString();
             } else if (latestEl) {
                 latestEl.innerText = "N/A";
+            }
+
+            // Calculate Dynamic Success Rate mathematically
+            const successEl = document.getElementById('stat-success-rate');
+            if (successEl) {
+                if (allArchiveTickets.length > 0) {
+                    const successCount = allArchiveTickets.filter(t => t.status === 'Done' || t.status === 'Completed').length;
+                    const rate = Math.round((successCount / allArchiveTickets.length) * 100);
+                    successEl.innerText = `${rate}%`;
+
+                    // Dynamic color switching based on telemetry
+                    if (rate < 80) successEl.className = 'h3 fw-bold mb-0 text-danger';
+                    else if (rate < 95) successEl.className = 'h3 fw-bold mb-0 text-warning';
+                    else successEl.className = 'h3 fw-bold mb-0 text-success';
+                } else {
+                    successEl.innerText = "--%";
+                    successEl.className = 'h3 fw-bold mb-0 text-secondary';
+                }
             }
 
             renderTickets(allArchiveTickets);
@@ -98,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ticketsToRender.forEach((ticket, i) => {
             // Safely handle customer object (Supabase either returns object or array of objects sometimes if 1-to-many, but usually an object for standard rels)
             const custRef = Array.isArray(ticket.customers) ? ticket.customers[0] : ticket.customers;
-            const customerName = custRef ? `${custRef.first_name || ''} ${custRef.last_name || ''}`.trim() : 'Unknown';
+            const customerName = custRef ? `${custRef.first_name || ''} ${custRef.last_name || ''} `.trim() : 'Unknown';
             const customerPhone = custRef?.phone_number || 'N/A';
             const brand = ticket.device_brand || '';
             const model = ticket.device_model || '';
@@ -106,56 +124,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Format to a clean date
             const dateStr = window.formatDateTime ? window.formatDateTime(ticket.updated_at || ticket.created_at) : new Date(ticket.updated_at || ticket.created_at).toLocaleDateString();
 
-            const badgeClass = 'bg-success text-white shadow-sm';
+            // Intelligent Styling based on terminal state
+            const isFailed = ['Failed', 'Cancelled', 'Unrepairable', 'Refunded'].includes(ticket.status);
+            const badgeClass = isFailed ? 'bg-danger text-white shadow-sm' : 'bg-success text-white shadow-sm';
+            const borderGlow = isFailed ? 'border-danger' : 'border-success';
 
             htmlPayload += `
                 <div class="col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster" style="animation-delay: ${(i * 0.03).toFixed(2)}s">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden bg-body-tertiary transition-all" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
-                        
-                        <!-- Top Progress Bar (Visual indicator for finished job) -->
-                        <div class="position-absolute top-0 start-0 w-100 ${badgeClass}" style="height: 6px;"></div>
-                        
-                        <div class="card-body p-4 pt-4 d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h6 class="fw-bold mb-1 tracking-tight text-main">${customerName}</h6>
-                                    <p class="small text-secondary mb-0"><i class="text-primary font-monospace fw-bold">${ticket.ticket_code}</i></p>
-                                </div>
-                                <span class="badge ${badgeClass} rounded-pill px-3 py-2 border border-success border-opacity-25">${ticket.status || 'Done'}</span>
-                            </div>
+                            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden bg-body-tertiary transition-all" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
 
-                            <div class="bg-body p-3 rounded-4 mb-3 border border-light border-opacity-10 shadow-sm">
-                                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light border-opacity-10">
-                                    <span class="small text-secondary fw-bold text-uppercase">Device</span>
-                                    <span class="small fw-bold text-main d-flex align-items-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-1 opacity-50" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${brand} ${model}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="small text-secondary fw-bold text-uppercase opacity-75">Category</span>
-                                    <span class="small fw-bold text-secondary text-end">${ticket.service_category || 'N/A'}</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="small text-secondary fw-bold text-uppercase opacity-75">Contact</span>
-                                    <span class="small fw-bold text-secondary">${customerPhone}</span>
-                                </div>
-                            </div>
+                                <!-- Top Progress Bar (Visual indicator for finished job) -->
+                                <div class="position-absolute top-0 start-0 w-100 ${badgeClass}" style="height: 6px;"></div>
 
-                            <div class="mb-4">
-                                <p class="small text-secondary fw-bold text-uppercase mb-2 opacity-75">Issue / Description</p>
-                                <p class="small mb-0 text-truncate text-main fst-italic fw-medium" style="line-height: 1.5;" title="${ticket.issue_description || ''}">"${ticket.issue_description || 'No description provided.'}"</p>
-                            </div>
+                                <div class="card-body p-4 pt-4 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 tracking-tight text-main">${customerName}</h6>
+                                            <p class="small text-secondary mb-0"><i class="text-primary font-monospace fw-bold">${ticket.ticket_code}</i></p>
+                                        </div>
+                                        <span class="badge ${badgeClass} rounded-pill px-3 py-2 border ${borderGlow} border-opacity-25">${ticket.status || 'Done'}</span>
+                                    </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light border-opacity-10">
-                                <div class="small text-secondary fw-medium d-flex align-items-center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-1 opacity-75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                    ${finishedDate.split(',')[0]} <!-- Just date -->
+                                    <div class="bg-body p-3 rounded-4 mb-3 border border-light border-opacity-10 shadow-sm">
+                                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light border-opacity-10">
+                                            <span class="small text-secondary fw-bold text-uppercase">Device</span>
+                                            <span class="small fw-bold text-main d-flex align-items-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-1 opacity-50" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${brand} ${model}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="small text-secondary fw-bold text-uppercase opacity-75">Category</span>
+                                            <span class="small fw-bold text-secondary text-end">${ticket.service_category || 'N/A'}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="small text-secondary fw-bold text-uppercase opacity-75">Contact</span>
+                                            <span class="small fw-bold text-secondary">${customerPhone}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <p class="small text-secondary fw-bold text-uppercase mb-2 opacity-75">Issue / Description</p>
+                                        <p class="small mb-0 text-truncate text-main fst-italic fw-medium" style="line-height: 1.5;" title="${ticket.issue_description || ''}">"${ticket.issue_description || 'No description provided.'}"</p>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light border-opacity-10">
+                                        <div class="small text-secondary fw-medium d-flex align-items-center">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-1 opacity-75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            ${dateStr.split(',')[0]}
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-4 shadow-sm hover-lift fw-medium" onclick="window.viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket).replace(/'/g, '&#39;'))}">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View Info
+                                        </button>
+                                    </div>
                                 </div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-4 shadow-sm hover-lift fw-medium" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View Info
-                                </button>
                             </div>
                         </div>
-                    </div>
-                </div>
             `;
         });
 
@@ -181,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const descMatch = (t.issue_description || '').toLowerCase().includes(term);
                 const brandMatch = (t.device_brand || '').toLowerCase().includes(term);
                 const modelMatch = (t.device_model || '').toLowerCase().includes(term);
-                const custMatch = `${cFirst} ${cLast}`.toLowerCase().includes(term);
+                const custMatch = `${cFirst} ${cLast} `.toLowerCase().includes(term);
                 const phoneMatch = phone.toLowerCase().includes(term);
 
                 return codeMatch || descMatch || brandMatch || modelMatch || custMatch || phoneMatch;
@@ -225,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const completedDate = new Date(t.updated_at || t.created_at).toLocaleString();
                 const issue = (t.issue_description || '').replace(/"/g, '""').replace(/\n/g, ' ');
 
-                let row = `"${t.ticket_code}","${cFirst} ${cLast}","${phone}","${t.device_brand || ''}","${t.device_model || ''}","${t.service_category || ''}","${t.status || ''}","${completedDate}","${issue}"`;
+                let row = `"${t.ticket_code}", "${cFirst} ${cLast}", "${phone}", "${t.device_brand || ''}", "${t.device_model || ''}", "${t.service_category || ''}", "${t.status || ''}", "${completedDate}", "${issue}"`;
                 csvContent += row + "\r\n";
             });
 
@@ -346,7 +367,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { error: tErr } = await window.sb.from('repair_tickets').insert([{
                     ticket_code: ticketCode,
                     customer_id: actualCustId,
-                    device_type: brand || 'Unknown',
                     device_brand: brand || 'Unknown',
                     device_model: model || 'Unknown',
                     service_category: cat || 'General Repair',
@@ -365,10 +385,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         Swal.fire(
             'Import Complete',
-            `Successfully imported <b>${importedCount}</b> archival records. <br><span class="text-secondary small">Skipped duplicates/errors: ${errorsCount}</span>`,
+            `Successfully imported < b > ${importedCount}</b > archival records. < br > <span class="text-secondary small">Skipped duplicates/errors: ${errorsCount}</span>`,
             importedCount > 0 ? 'success' : 'info'
         ).then(() => {
             fetchAndRenderHistory();
         });
     }
+
+    // Modal UI Controller for "View Info" (Replaces empty boilerplate)
+    window.viewJobPanel = function (btn) {
+        try {
+            const ticketDataStr = btn.getAttribute('data-ticket');
+            if (!ticketDataStr) throw new Error("No payload found");
+            const t = JSON.parse(decodeURIComponent(ticketDataStr));
+
+            const custRef = Array.isArray(t.customers) ? t.customers[0] : t.customers;
+            const cName = custRef ? `${custRef.first_name || ''} ${custRef.last_name || ''}`.trim() : 'Unknown';
+            const phone = custRef?.phone_number || 'N/A';
+            const dateStr = window.formatDateTime ? window.formatDateTime(t.updated_at || t.created_at) : new Date(t.updated_at || t.created_at).toLocaleString();
+
+            Swal.fire({
+                title: `< span class= "text-primary fw-bold font-monospace badge bg-primary bg-opacity-10 px-3 py-2 border border-primary border-opacity-25 shadow-sm" > ${t.ticket_code}</span > `,
+                html: `
+< div class= "text-start mx-auto" style = "max-width: 450px; font-size: 0.95rem;" >
+                        <div class="p-3 bg-body-tertiary rounded-4 mb-3 border border-light border-opacity-10 shadow-sm">
+                            <h6 class="fw-bold mb-3 text-uppercase text-secondary small tracking-tight">Customer Information</h6>
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-2"><strong>Client:</strong> <span class="text-main fw-medium">${cName}</span></p>
+                            <p class="mb-1 d-flex justify-content-between"><strong>Contact Number:</strong> <span class="text-main font-monospace fw-medium">${phone}</span></p>
+                        </div>
+                        
+                        <div class="p-3 bg-body-tertiary rounded-4 mb-3 border border-light border-opacity-10 shadow-sm">
+                            <h6 class="fw-bold mb-3 text-uppercase text-secondary small tracking-tight">Device Details</h6>
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-2"><strong>Model:</strong> <span class="text-main fw-medium">${t.device_brand || ''} ${t.device_model || ''}</span></p>
+                            <p class="mb-1 d-flex justify-content-between"><strong>Service Category:</strong> <span class="text-main fw-medium">${t.service_category || 'N/A'}</span></p>
+                        </div>
+
+                        <div class="p-3 bg-body bg-opacity-50 rounded-4 mb-3 border border-light border-opacity-10">
+                            <h6 class="fw-bold mb-2 text-uppercase text-secondary small tracking-tight">Issue Description</h6>
+                            <p class="small text-main fst-italic mb-0" style="line-height: 1.6;">"${t.issue_description || 'No description provided.'}"</p>
+                        </div>
+
+                        <div class="text-center mt-3 pt-2">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                Finalized On: ${dateStr}
+                            </span>
+                        </div>
+                        </div>
+                    </div>
+                `,
+                showCloseButton: true,
+                showConfirmButton: false,
+                focusConfirm: false,
+                customClass: {
+                    popup: 'rounded-4 shadow-lg bg-glass-deep border border-light border-opacity-10',
+                    title: 'fs-4 mt-2'
+                }
+            });
+        } catch (err) {
+            console.error("View Panel Corrupted Payload:", err);
+            Swal.fire('Data Integrity Error', 'Encrypted ticket payload failed to parse. Database sync error.', 'error');
+        }
+    };
 });

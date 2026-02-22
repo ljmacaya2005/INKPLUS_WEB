@@ -44,15 +44,20 @@ async function fetchAndRenderJobs() {
                 *,
                 customers (first_name, last_name, phone_number)
             `)
-            .neq('status', 'Done') // Only fetch active tickets (not archived/done yet)
+            .neq('status', 'Done')
+            .neq('status', 'Completed')
+            .neq('status', 'Failed')
+            .neq('status', 'Cancelled')
+            .neq('status', 'Unrepairable')
+            .neq('status', 'Refunded')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         if (!tickets || tickets.length === 0) {
             container.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <img src="assets/empty.svg" alt="No Jobs" style="max-width: 150px; opacity: 0.5;" class="mb-3 d-none">
+                < div class= "col-12 text-center py-5" >
+                <img src="assets/empty.svg" alt="No Jobs" style="max-width: 150px; opacity: 0.5;" class="mb-3 d-none">
                     <h5 class="text-secondary fw-bold">No Active Jobs Found</h5>
                     <p class="text-secondary small mt-2">All tasks are completed or no new jobs have been scheduled.</p>
                 </div>
@@ -78,61 +83,61 @@ async function fetchAndRenderJobs() {
             if (ticket.status === 'Ready') badgeClass = 'bg-success text-white';
 
             htmlPayload += `
-                <div class="col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden transition-all hover-lift bg-body-tertiary border border-light border-opacity-10" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-                        
-                        <!-- Top Progress Bar (Visual indicator) -->
-                        <div class="position-absolute top-0 start-0 w-100 shadow-sm" style="height: 6px; background-color: var(--bs-${badgeClass.includes('warning') ? 'warning' : badgeClass.includes('info') ? 'info' : badgeClass.includes('success') ? 'success' : badgeClass.includes('primary') ? 'primary' : 'secondary'});"></div>
-                        
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h5 class="fw-black mb-1 text-main tracking-tight" style="font-weight: 800;">${customerName}</h5>
-                                    <p class="small text-secondary mb-0"><i class="text-primary fw-bold font-monospace">${ticket.ticket_code}</i></p>
-                                </div>
-                                <span class="badge ${badgeClass} rounded-pill px-3 py-2 shadow-sm fw-bold" style="letter-spacing: 0.5px; font-size: 0.70rem;">${ticket.status.toUpperCase()}</span>
-                            </div>
+            < div class= "col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster" >
+            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden transition-all hover-lift bg-body-tertiary border border-light border-opacity-10" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
 
-                            <div class="p-3 rounded-4 mb-4 shadow-sm" style="background: rgba(var(--bs-primary-rgb), 0.04); border: 1px solid rgba(var(--bs-primary-rgb), 0.08);">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Device</span>
-                                    <span class="small fw-bold text-main">${brand} ${ticket.device_model}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Category</span>
-                                    <span class="small fw-bold text-main text-end">${ticket.service_category}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contact</span>
-                                    <span class="small fw-bold text-main font-monospace">${customerPhone}</span>
-                                </div>
-                            </div>
+                <!-- Top Progress Bar (Visual indicator) -->
+                <div class="position-absolute top-0 start-0 w-100 shadow-sm" style="height: 6px; background-color: var(--bs-${badgeClass.includes('warning') ? 'warning' : badgeClass.includes('info') ? 'info' : badgeClass.includes('success') ? 'success' : badgeClass.includes('primary') ? 'primary' : 'secondary'});"></div>
 
-                            <div class="mb-4">
-                                <p class="small text-secondary fw-bold text-uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">Issue / Description</p>
-                                <p class="small text-main mb-0 text-truncate fst-italic" style="max-height: 40px; overflow: hidden;" title="${ticket.issue_description}">"${ticket.issue_description || 'No description provided.'}"</p>
-                            </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="fw-black mb-1 text-main tracking-tight" style="font-weight: 800;">${customerName}</h5>
+                            <p class="small text-secondary mb-0"><i class="text-primary fw-bold font-monospace">${ticket.ticket_code}</i></p>
+                        </div>
+                        <span class="badge ${badgeClass} rounded-pill px-3 py-2 shadow-sm fw-bold" style="letter-spacing: 0.5px; font-size: 0.70rem;">${ticket.status.toUpperCase()}</span>
+                    </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-4 border-top border-light border-opacity-10">
-                                <div class="small text-secondary fw-medium d-flex align-items-center" style="font-size: 0.75rem;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-2 text-primary opacity-75" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    ${createdDate}
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-light border-0 rounded-pill px-3 shadow-sm hover-lift text-main fw-bold" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}" style="background: rgba(var(--bs-primary-rgb), 0.1);">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View
-                                    </button>
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm hover-lift fw-bold update-status-btn" 
-                                        data-id="${ticket.ticket_id}" 
-                                        data-code="${ticket.ticket_code}" 
-                                        data-status="${ticket.status}">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M2 12h4l2-9 5 18 2-9h4"></path></svg> Update
-                                    </button>
-                                </div>
-                            </div>
+                    <div class="p-3 rounded-4 mb-4 shadow-sm" style="background: rgba(var(--bs-primary-rgb), 0.04); border: 1px solid rgba(var(--bs-primary-rgb), 0.08);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Device</span>
+                            <span class="small fw-bold text-main">${brand} ${ticket.device_model}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Category</span>
+                            <span class="small fw-bold text-main text-end">${ticket.service_category}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contact</span>
+                            <span class="small fw-bold text-main font-monospace">${customerPhone}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="small text-secondary fw-bold text-uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">Issue / Description</p>
+                        <p class="small text-main mb-0 text-truncate fst-italic" style="max-height: 40px; overflow: hidden;" title="${ticket.issue_description}">"${ticket.issue_description || 'No description provided.'}"</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-4 border-top border-light border-opacity-10">
+                        <div class="small text-secondary fw-medium d-flex align-items-center" style="font-size: 0.75rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="me-2 text-primary opacity-75" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            ${createdDate}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-light border-0 rounded-pill px-3 shadow-sm hover-lift text-main fw-bold" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}" style="background: rgba(var(--bs-primary-rgb), 0.1);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View
+                            </button>
+                            <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm hover-lift fw-bold update-status-btn"
+                                data-id="${ticket.ticket_id}"
+                                data-code="${ticket.ticket_code}"
+                                data-status="${ticket.status}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M2 12h4l2-9 5 18 2-9h4"></path></svg> Update
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
+                </div >
             `;
         });
 
@@ -145,7 +150,7 @@ async function fetchAndRenderJobs() {
 
     } catch (error) {
         console.error("Job Fetching Error:", error);
-        container.innerHTML = `<div class="col-12 text-center text-danger py-5"><strong>Failed to load jobs matrix.</strong></div>`;
+        container.innerHTML = `< div class="col-12 text-center text-danger py-5" > <strong>Failed to load jobs matrix.</strong></div > `;
     }
 }
 
@@ -159,13 +164,15 @@ function handleStatusUpdate(e) {
     Swal.fire({
         title: 'Update Progress Status',
         html: `
-            <h6 class="font-monospace text-primary mb-3">Ticket: ${ticketCode}</h6>
+            < h6 class="font-monospace text-primary mb-3" > Ticket: ${ticketCode}</h6 >
             <select id="newStatusSelect" class="form-select form-select-lg mb-3">
                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                 <option value="Diagnosing" ${currentStatus === 'Diagnosing' ? 'selected' : ''}>Diagnosing</option>
                 <option value="Repairing" ${currentStatus === 'Repairing' ? 'selected' : ''}>Repairing</option>
-                <option value="Ready" ${currentStatus === 'Ready' ? 'selected' : ''}>Ready for Pick-up</option>
-                <option value="Done" ${currentStatus === 'Done' ? 'selected' : ''}>Done (Archive)</option>
+                <option value="Done" ${currentStatus === 'Done' ? 'selected' : ''}>Done (Success Archive)</option>
+                <option value="Failed" ${currentStatus === 'Failed' ? 'selected' : ''}>Failed (Fail Archive)</option>
+                <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled (Archive)</option>
+                <option value="Unrepairable" ${currentStatus === 'Unrepairable' ? 'selected' : ''}>Unrepairable (Archive)</option>
             </select>
             <p class="text-secondary small px-3">Updating this status will instantly broadcast the new state to the customer's public live tracker if they are online.</p>
         `,
@@ -201,7 +208,7 @@ function handleStatusUpdate(e) {
                     }, 'info');
                 }
 
-                Swal.fire('Updated!', `Ticket ${ticketCode} moved to <b>${newStatus}</b>.`, 'success')
+                Swal.fire('Updated!', `Ticket ${ticketCode} moved to < b > ${newStatus}</b >.`, 'success')
                     .then(() => {
                         // Refresh view
                         fetchAndRenderJobs();
@@ -221,7 +228,7 @@ window.viewJobPanel = function (btn) {
     try {
         const ticketStr = btn.getAttribute('data-ticket');
         const t = JSON.parse(decodeURIComponent(ticketStr));
-        const custName = t.customers ? `${t.customers.first_name || ''} ${t.customers.last_name || ''}`.trim() : 'Unknown';
+        const custName = t.customers ? `${t.customers.first_name || ''} ${t.customers.last_name || ''} `.trim() : 'Unknown';
         const custPhone = t.customers?.phone_number || 'N/A';
         const dateStr = new Date(t.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 
@@ -232,9 +239,9 @@ window.viewJobPanel = function (btn) {
         if (t.status === 'Ready') badgeClass = 'bg-success text-white';
 
         Swal.fire({
-            title: `<span class="fw-bold tracking-tight text-main ms-2">Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span>`,
+            title: `< span class="fw-bold tracking-tight text-main ms-2" > Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span > `,
             html: `
-                <div class="text-start mt-3 px-1" style="font-size: 0.95rem;">
+            < div class="text-start mt-3 px-1" style = "font-size: 0.95rem;" >
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
                         <span class="badge ${badgeClass} fs-6 px-3 py-2 rounded-pill shadow-sm">${t.status}</span>
                         <span class="small text-secondary fw-semibold bg-body-tertiary px-3 py-1 rounded-pill border border-light border-opacity-10 shadow-sm">${dateStr}</span>
@@ -262,7 +269,7 @@ window.viewJobPanel = function (btn) {
                         <label class="small text-muted fw-bold text-uppercase mb-2 d-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Issue / Description</label>
                         <p class="mb-0 text-main fst-italic fw-medium" style="line-height: 1.6;">"${t.issue_description || 'No detailed issue description provided.'}"</p>
                     </div>
-                </div>
+                </div >
             `,
             showCloseButton: true,
             showConfirmButton: false,

@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tickets) {
                 tickets.forEach(t => {
                     const s = (t.status || 'Pending').toLowerCase();
-                    if (s === 'completed' || s === 'resolved' || s === 'picked up') {
+                    if (['completed', 'resolved', 'picked up', 'done', 'failed', 'cancelled', 'unrepairable', 'refunded'].includes(s)) {
                         cCompleted++;
                     } else if (s === 'pending') {
                         cPending++;
