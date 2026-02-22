@@ -222,7 +222,43 @@ async function handleLogin(event) {
 	submitBtn.disabled = true;
 
 	try {
-		// Attempt Login with Supabase
+		// --- ONE-TIME SYSTEM SETUP BYPASS ---
+		const { count, error: countErr } = await window.sb.from('users').select('*', { count: 'exact', head: true });
+
+		if (!countErr && count === 0 && email === 'setup@inkplus.com' && password === 'setup') {
+			console.warn("SYSTEM INITIALIZATION OVERRIDE ACTIVATED");
+
+			localStorage.setItem('isLoggedIn', 'true');
+			localStorage.setItem('username', 'Setup Administrator');
+			localStorage.setItem('sb_token', window.SUPABASE_SERVICE_KEY || 'SETUP_OVERRIDE_TOKEN');
+			localStorage.setItem('user_id', 'SYSTEM_SETUP_ID');
+			localStorage.setItem('session_record_id', 'setup_mode');
+
+			// Trigger Flip Animation instantly
+			const flipper = document.getElementById('loginFlipper');
+			if (flipper) {
+				const successMsgEl = document.getElementById('loginSuccessMessage');
+				if (successMsgEl) successMsgEl.textContent = `Welcome, Setup Administrator.`;
+				flipper.classList.add('flipped');
+			}
+
+			// Show Setup Alert
+			Swal.fire({
+				title: 'Setup Mode Enabled',
+				text: 'Database is empty. Redirecting directly to User Management so you can provision the first global administrator account.',
+				icon: 'info',
+				timer: 4000,
+				showConfirmButton: false,
+				didClose: () => {
+					window.location.replace('users.html');
+				}
+			});
+
+			return; // Stop standard login flow
+		}
+		// --- END SETUP BYPASS ---
+
+		// Attempt Normal Login with Supabase
 		const { data, error } = await window.sb.auth.signInWithPassword({
 			email: email,
 			password: password

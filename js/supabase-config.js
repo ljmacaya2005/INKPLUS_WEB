@@ -6,8 +6,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
 // WARNING: Exposing Service Role Key on client-side is a security risk. Only use in trusted internal environments.
-const SUPABASE_SERVICE_KEY = '';
-// window.SUPABASE_SERVICE_KEY is intentionally omitted to force manual input for security.
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0ZHBzb3BmZ2Fld3d4Z3hnZm15Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTUwNTYyMywiZXhwIjoyMDg3MDgxNjIzfQ.8VFEz7UK8F-nTsOM4pVjeMT3N8ILnTPBbxP9qh8uDR0';
+window.SUPABASE_SERVICE_KEY = SUPABASE_SERVICE_KEY; // Temporarily hardcoded for user convenience
 
 // Shared Key for Password Encryption (AES) - Ensure this matches across Login and Users if separated.
 // This key is used for client-side encryption of sensitive data like reset passwords.

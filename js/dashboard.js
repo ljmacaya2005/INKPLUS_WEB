@@ -79,6 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!userId) return;
 
+        // --- EMPTY DATABASE SYSTEM SETUP BYPASS ---
+        if (userId === 'SYSTEM_SETUP_ID') {
+            console.warn("[RBAC] SYSTEM INITIALIZATION BYPASS ACTIVE");
+
+            // Show all sidebar links explicitly and forcibly whitelist UI access
+            const sidebarLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+            sidebarLinks.forEach(link => {
+                const li = link.closest('li');
+                if (li) {
+                    li.style.removeProperty('display');
+                    li.classList.add('reveal');
+                    li.removeAttribute('aria-hidden');
+                }
+            });
+
+            // Fake an Admin Header Profile
+            const profileSpan = document.querySelector('.user-profile span');
+            if (profileSpan) {
+                profileSpan.classList.remove('d-none', 'd-sm-inline');
+                profileSpan.innerHTML = `
+                    <span class="d-none d-sm-inline">System Setup</span>
+                    <span class="d-inline d-sm-none">Setup</span>
+                `;
+            }
+
+            // Immediately exit the RBAC checks since this session has no real database rows yet
+            return;
+        }
+
         // 2. Fetch User & Roles (Robust Join)
         const { data: userData, error } = await sb
             .from('users')
@@ -562,7 +591,7 @@ window.logAction = async function (signature, subsystem, payload = {}, severity 
 const startSessionGuard = () => {
     const userId = localStorage.getItem('user_id');
     const sessionId = localStorage.getItem('session_record_id');
-    if (!userId || !window.sb) return;
+    if (!userId || !window.sb || userId === 'SYSTEM_SETUP_ID') return;
 
     // 1. Ensure marked online initially (handles rapid page refreshes seamlessly)
     window.sb.from('users').update({ is_online: true, updated_at: new Date().toISOString() }).eq('user_id', userId);
@@ -661,6 +690,8 @@ const handleTabClose = () => {
     const userId = localStorage.getItem('user_id');
     const token = localStorage.getItem('sb_token');
     const sessionId = localStorage.getItem('session_record_id');
+
+    if (userId === 'SYSTEM_SETUP_ID') return; // Do not try to clean up ghost setup session
 
     if (userId && token && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
         // Drop user to offline
