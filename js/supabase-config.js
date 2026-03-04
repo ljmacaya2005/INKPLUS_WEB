@@ -225,38 +225,5 @@ window.forceLogout = async function (wipeTerminal = false) {
     window.location.replace(`${target}?reason=security_event&t=${Date.now()}`);
 };
 
-// 3. Fail-Safe Security Heartbeat (Fallback Polling)
-setInterval(async () => {
-    const userId = localStorage.getItem('user_id');
-    const sessionId = localStorage.getItem('session_record_id');
-    const deviceId = window.getPersistentDeviceId();
 
-    if (!userId || userId === 'SYSTEM_SETUP_ID' || !window.sb) return;
-
-    try {
-        // Check User status
-        const { data: user } = await window.sb.from('users').select('is_active, is_online').eq('user_id', userId).maybeSingle();
-        if (!user || user.is_active === false || user.is_online === false) {
-            console.warn("[Security] Heartbeat: Access Revoked.");
-            window.forceLogout();
-            return;
-        }
-
-        // Check Session status
-        if (sessionId) {
-            const { data: session } = await window.sb.from('login_sessions').select('ended_at').eq('id', sessionId).maybeSingle();
-            if (!session || session.ended_at !== null) {
-                console.warn("[Security] Heartbeat: Session ended.");
-                forceLogout();
-                return;
-            }
-        }
-    } catch (err) {
-        // If the query itself fails with a 401/403 (due to RLS if we're unauthorized), it's a security signal
-        if (err.status === 401 || err.status === 403 || (err.message && err.message.includes('permission denied'))) {
-            console.warn("[Security] Heartbeat: Permission denied.");
-            forceLogout();
-        }
-    }
-}, 10000); // 10 second polling fallback
 
