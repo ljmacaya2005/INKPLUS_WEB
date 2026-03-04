@@ -26,31 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		// --- IP ALLOWLIST SECURITY GUARD (Real-Time + Fallback) ---
 		// The 'GlobalSecurityMonitor' in supabase-config.js handles INSTANT real-time detection.
 		// This serves as a secondary sanity check every 5 seconds.
-		const startSecurityGuard = async () => {
-			const deviceId = window.getPersistentDeviceId();
 
-			const securityInterval = setInterval(async () => {
-				if (!deviceId) {
-					clearInterval(securityInterval);
-					window.location.replace('index.html');
-					return;
-				}
-
-				try {
-					const { data } = await window.sb
-						.from('ip_allowlist')
-						.select('is_active')
-						.eq('device_id', deviceId)
-						.maybeSingle();
-
-					if (data === null || data.is_active === false) {
-						console.warn("[Security] Terminal Access Revoked. Redirecting...");
-						clearInterval(securityInterval);
-						window.location.replace('index.html');
-					}
-				} catch (err) { }
-			}, 5000);
-		};
 
 		// Run initial check and then start the persistent guard
 		// Run initial check and then start the persistent guard
@@ -74,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 			console.info("[Security] System is unprovisioned. Bypassing terminal guard for initial setup.");
 		}
 
-		startSecurityGuard();
+
 
 		let splashEnabled = true;
 		let maintenanceMode = false;

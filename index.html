@@ -631,21 +631,40 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
 
-                // 6. Mesh Listener
-                window.sb.channel('gate_channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'ip_allowlist', filter: `device_id=eq.${deviceId}` }, (pl) => {
-                        if (pl.new && pl.new.is_active) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Handshake Verified',
-                                text: 'Access granted by administrator. Syncing...',
-                                showConfirmButton: false,
-                                timer: 1500,
-                                background: 'rgba(20, 20, 20, 0.95)',
-                                color: '#fff'
-                            }).then(() => window.location.replace('login.html'));
-                        }
-                    })
+                // 6. Mesh Listener (Dual-Layer: ID & IP Mesh)
+                const handleSecurityPayload = (pl) => {
+                    const data = pl.new || pl.old;
+                    if (data && data.is_active) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Handshake Verified',
+                            text: 'Access granted by administrator. Syncing...',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            background: 'rgba(20, 20, 20, 0.95)',
+                            color: '#fff'
+                        }).then(() => window.location.replace('login.html'));
+                    }
+                };
+
+                // Listen for Device ID match
+                window.sb.channel('gate_device_channel')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'ip_allowlist',
+                        filter: `device_id=eq.${deviceId}`
+                    }, handleSecurityPayload)
+                    .subscribe();
+
+                // Listen for IP Address match (For manual admin entries)
+                window.sb.channel('gate_ip_channel')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'ip_allowlist',
+                        filter: `ip_address=eq.${ipAddress}`
+                    }, handleSecurityPayload)
                     .subscribe();
 
                 // 7. Auto-Initialization Case (System Setup & Fresh Access)
