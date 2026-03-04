@@ -1,1 +1,157 @@
 /* home.css - Home Page Specific Styles */
+
+/* --- MOBILE SCALABILITY PROTOCOL (home.html) --- */
+
+@media (max-width: 991px) {
+    .main-content {
+        padding: 5rem 1rem 2rem !important;
+        /* Proper clearance for fixed mobile header */
+    }
+
+    .dashboard-header {
+        height: auto;
+        padding: 0.75rem 1.25rem !important;
+        border-bottom: 1px solid var(--glass-border);
+    }
+}
+
+/* Stats Cards Grid Refinement */
+@media (max-width: 768px) {
+    .row.g-4.mb-4 {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+
+    .dashboard-card.p-4 {
+        padding: 1rem !important;
+        margin: 0 !important;
+    }
+
+    .dashboard-card h3 {
+        font-size: 1.25rem !important;
+    }
+
+    .dashboard-card p {
+        font-size: 0.75rem !important;
+    }
+
+    .dashboard-card .rounded-circle {
+        padding: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .dashboard-card svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
+/* Recently Scheduled Jobs Card (Mobile Displacement Correction) */
+@media (max-width: 576px) {
+    #recent-tickets-container .card-body {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+
+    #recent-tickets-container .icon-box-wrapper {
+        display: none !important;
+        /* Hide icon on very small screens to save width */
+    }
+
+    #recent-tickets-container .flex-grow-1 {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #recent-tickets-container .ms-auto {
+        margin-left: 0 !important;
+        width: 100% !important;
+        border-left: none !important;
+        border-top: 1px solid var(--glass-border) !important;
+        padding-top: 0.75rem !important;
+        padding-left: 0 !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    #recent-tickets-container .ms-auto span {
+        text-align: left !important;
+        margin-bottom: 0 !important;
+    }
+
+    #recent-tickets-container h6.fw-bold {
+        font-size: 0.9rem !important;
+    }
+
+    .quick-link-item {
+        padding: 12px !important;
+    }
+
+    .quick-link-item .icon-box {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .quick-link-item .ms-3 h6 {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* Layout stacking for smaller tablets */
+@media (max-width: 991px) {
+
+    .row.g-4>.col-lg-8,
+    .row.g-4>.col-lg-4 {
+        width: 100% !important;
+    }
+
+    .quick-link-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+/* Premium Sidebar Drawer for Mobile */
+@media (max-width: 991px) {
+    .sidebar {
+        width: 250px !important;
+        background: var(--sidebar-bg) !important;
+        backdrop-filter: blur(25px) !important;
+        -webkit-backdrop-filter: blur(25px) !important;
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .sidebar-brand {
+        padding: 2rem 1rem !important;
+    }
+
+    .nav-link {
+        margin: 2px 10px !important;
+        padding: 10px 15px !important;
+    }
+}
+
+/* Header & Profile Mobile Scaling */
+@media (max-width: 576px) {
+    .user-profile img {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .user-profile span {
+        font-size: 0.8rem !important;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.15rem !important;
+    }
+
+    .dashboard-header p.small {
+        font-size: 0.65rem !important;
+    }
+}
