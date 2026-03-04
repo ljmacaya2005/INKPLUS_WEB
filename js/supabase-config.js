@@ -174,18 +174,22 @@ window.initGlobalSecurityMonitor = async function () {
         }
     }
 
-    // 3. Universal Security Broadcast (Sub-second Immediate Kickout)
-    window.sb.channel('security-perimeter')
+    // --- GLOBAL SECURITY PERIMETER ---
+    // Initialize a persistent channel that lives for the duration of the page
+    window.securityPerimeter = window.sb.channel('security-perimeter');
+
+    window.securityPerimeter
         .on('broadcast', { event: 'TERMINATE_SESSION' }, (payload) => {
             const pk = payload.payload;
             const myId = localStorage.getItem('user_id');
+            const mySessId = localStorage.getItem('session_record_id');
 
             // Strategy: Kick if it's my ID, or if it's a GLOBAL purge and I am NOT the admin who started it
-            const isMe = pk.userId === myId || pk.sessionId == sessionId;
+            const isMe = pk.userId === myId || (pk.sessionId && pk.sessionId == mySessId);
             const isGlobalPurge = pk.userId === 'ALL_EXCEPT_OWNER' && pk.initiatorId !== myId;
 
             if (isMe || isGlobalPurge) {
-                console.error("[Security] REMOTE TERMINATION SIGNAL RECEIVED VIA BROADCAST.");
+                console.error("[Security] REMOTE TERMINATION SIGNAL RECEIVED. DEPLOYING LOGOUT PROTOCOL.");
                 forceLogout();
             }
         })
@@ -193,7 +197,7 @@ window.initGlobalSecurityMonitor = async function () {
 
     // --- RECOVERY HELPER ---
     async function forceLogout() {
-        console.warn("[Security] Executing Force Logout Protocol...");
+        console.warn("[Security] System Disconnect Protocol: ACTIVATED.");
 
         // Clear all persistent states immediately to prevent auto-relogin
         localStorage.clear();
@@ -204,8 +208,8 @@ window.initGlobalSecurityMonitor = async function () {
             window.sb.auth.signOut().catch(() => { });
         }
 
-        // Immediate hard redirect
-        window.location.href = 'index.html?reason=security_revoked';
+        // Hard destructive redirect to prevent back-button hijacking
+        window.location.replace('index.html?reason=security_revoked&t=' + Date.now());
     }
 
     // 3. Fail-Safe Security Heartbeat (Fallback Polling)

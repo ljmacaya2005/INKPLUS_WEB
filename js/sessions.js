@@ -76,11 +76,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .is('ended_at', null);
 
                         // 3. Broadcast Termination to all (Wildcard userId handled by security monitor logic)
-                        window.sb.channel('security-perimeter').send({
-                            type: 'broadcast',
-                            event: 'TERMINATE_SESSION',
-                            payload: { userId: 'ALL_EXCEPT_OWNER', initiatorId: localStorage.getItem('user_id') }
-                        });
+                        if (window.securityPerimeter) {
+                            window.securityPerimeter.send({
+                                type: 'broadcast',
+                                event: 'TERMINATE_SESSION',
+                                payload: { userId: 'ALL_EXCEPT_OWNER', initiatorId: localStorage.getItem('user_id') }
+                            });
+                        }
 
                         Swal.fire('Purged', 'Global session purge broadcasted.', 'success');
                         fetchAndRenderSessions(); // re-sync
@@ -235,11 +237,13 @@ function handleDisconnectUser(e) {
                     .is('ended_at', null);
 
                 // 3. Broadcast Termination Signal (Sub-second Immediate Kickout)
-                window.sb.channel('security-perimeter').send({
-                    type: 'broadcast',
-                    event: 'TERMINATE_SESSION',
-                    payload: { userId: targetUserId }
-                });
+                if (window.securityPerimeter) {
+                    window.securityPerimeter.send({
+                        type: 'broadcast',
+                        event: 'TERMINATE_SESSION',
+                        payload: { userId: targetUserId }
+                    });
+                }
 
                 Swal.fire('Disconnected', 'User session terminated and broadcast signal sent.', 'success')
                     .then(() => {
