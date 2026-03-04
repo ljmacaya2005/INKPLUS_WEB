@@ -49,3 +49,45 @@
     border-color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
 }
+
+/* --- MOBILE SCALABILITY PROTOCOL (history.html) --- */
+@media (max-width: 576px) {
+
+    /* Stack metrics and analytics */
+    .telemetry-card .h3 {
+        font-size: 1.5rem !important;
+    }
+
+    /* Search box adjustments */
+    .search-box-premium .form-control {
+        font-size: 0.85rem !important;
+        padding: 0.6rem 1rem 0.6rem 40px !important;
+    }
+
+    .search-icon {
+        left: 12px !important;
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Action buttons block stacking */
+    .dashboard-card .p-4.border-bottom .d-flex.justify-content-lg-end {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100%;
+        gap: 0.75rem !important;
+        margin-top: 1rem;
+    }
+
+    .dashboard-card .p-4.border-bottom .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding-top: 0.6rem !important;
+        padding-bottom: 0.6rem !important;
+    }
+
+    /* Optimize the table/scrollable container padding */
+    .bg-glass-content {
+        padding: 1rem !important;
+    }
+}

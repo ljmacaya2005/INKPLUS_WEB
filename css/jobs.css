@@ -1,1 +1,59 @@
 /* jobs.css - Jobs Page Specific Styles */
+/* --- MOBILE SCALABILITY PROTOCOL (jobs.html) --- */
+@media (max-width: 576px) {
+
+    /* Stack header actions vertically */
+    .dashboard-card .d-flex.flex-md-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+
+    /* Expand the search and action pill container */
+    .dashboard-card .bg-body-tertiary {
+        width: 100%;
+        justify-content: space-between;
+        padding: 0.5rem !important;
+    }
+
+    /* Allow the search bar to fill remaining space */
+    .dashboard-card .bg-body-tertiary .input-group {
+        width: auto !important;
+        flex-grow: 1;
+    }
+
+    /* Refine the 'New Job' button spacing */
+    .dashboard-card .bg-body-tertiary .btn-primary {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        white-space: nowrap;
+    }
+
+    /* Scale typography down */
+    .dashboard-card h4.fw-black {
+        font-size: 1.35rem !important;
+    }
+
+    .dashboard-card p.small {
+        font-size: 0.8rem;
+    }
+
+    /* Container zero-bleed strategy */
+    .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    .dashboard-card {
+        padding: 1.25rem 0.75rem !important;
+        border-radius: 12px;
+    }
+
+    /* Grid gaps inside the ticket container */
+    #jobs-container.row {
+        --bs-gutter-x: 0.75rem !important;
+        --bs-gutter-y: 0.75rem !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}

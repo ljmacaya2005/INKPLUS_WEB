@@ -50,14 +50,15 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     font-weight: 700;
-    color: #64748b;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--primary-color);
+    opacity: 0.85;
+    border-bottom: 1px solid rgba(74, 144, 164, 0.15);
 }
 
 .session-table td {
     padding: 1.25rem 1rem;
     vertical-align: middle;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(74, 144, 164, 0.05);
 }
 
 .session-avatar {
@@ -90,4 +91,196 @@ code {
     transform: translateY(-2px);
     background-color: #ef4444 !important;
     color: white !important;
+}
+
+/* --- MOBILE SCALABILITY PROTOCOL (sessions.html) --- */
+@media (max-width: 992px) {
+
+    /* Top analytics cards scaling */
+    .session-stat-card {
+        padding: 1rem !important;
+    }
+
+    .session-stat-card .h3 {
+        font-size: 1.5rem !important;
+    }
+
+    .session-stat-card .stat-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Top bar flex reset */
+    .bg-glass-main .p-4.border-bottom {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+        padding-top: 1.25rem !important;
+        padding-bottom: 1.25rem !important;
+    }
+
+    .bg-glass-main .p-4.border-bottom h5 {
+        font-size: 1.15rem !important;
+    }
+
+    /* Force full-width block for critical actions */
+    #terminateAllBtn {
+        width: 100% !important;
+        text-align: center;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+
+    /* Comprehensive UI Card Architecture (Mobile) */
+    .table-responsive {
+        border: none !important;
+        overflow-x: hidden !important;
+    }
+
+    .session-table thead {
+        display: none !important;
+    }
+
+    .session-table,
+    .session-table tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        border: none !important;
+    }
+
+    .session-table tr {
+        display: flex !important;
+        flex-direction: column !important;
+        background: rgba(var(--card-bg-rgb), 0.6) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 16px !important;
+        padding: 1.25rem !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="light"] .session-table tr {
+        background: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Override 'isMe' inline border block to not break border radius */
+    .session-table tr[style*="border-left"] {
+        border-left: 4px solid var(--primary-color) !important;
+        background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 100%) !important;
+    }
+
+    /* Col 1: Identity Profile (Card Header) */
+    .session-table td:nth-child(1) {
+        display: flex !important;
+        width: 100% !important;
+        padding: 0 0 1rem 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin-bottom: 0.75rem;
+    }
+
+    [data-theme="light"] .session-table td:nth-child(1) {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .session-table td:nth-child(1)::before {
+        display: none !important;
+    }
+
+    .session-table td:nth-child(1)>div {
+        text-align: left !important;
+        justify-content: flex-start !important;
+        width: 100%;
+    }
+
+    /* Col 2, 3, 4: Telemetry Details (Key-Value Engine) */
+    .session-table td:nth-child(2),
+    .session-table td:nth-child(3),
+    .session-table td:nth-child(4) {
+        display: flex !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.35rem 0 !important;
+        border: none !important;
+        font-size: 0.85rem !important;
+    }
+
+    .session-table td::before {
+        display: block;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        opacity: 0.85;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+    }
+
+    .session-table td:nth-child(2)::before {
+        content: "Network Address";
+    }
+
+    .session-table td:nth-child(3)::before {
+        content: "Interface Agent";
+    }
+
+    .session-table td:nth-child(4)::before {
+        content: "Intercept State";
+    }
+
+    .session-table td>div {
+        text-align: right !important;
+    }
+
+    .session-table td:nth-child(4)>div {
+        align-items: flex-end !important;
+    }
+
+    /* Col 5: Actions (Card Footer) */
+    .session-table td:nth-child(5) {
+        display: flex !important;
+        width: 100% !important;
+        padding: 1rem 0 0 0 !important;
+        border: none !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+        margin-top: 0.75rem;
+        justify-content: center !important;
+    }
+
+    [data-theme="light"] .session-table td:nth-child(5) {
+        border-top: 1px dashed rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .session-table td:nth-child(5)::before {
+        display: none !important;
+    }
+
+    .session-table td:nth-child(5)>* {
+        width: 100% !important;
+    }
+
+    .session-table td:nth-child(5) .btn,
+    .session-table td:nth-child(5) .badge {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        width: 100% !important;
+        padding: 0.75rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Spinner Loading State Override */
+    .session-table td[colspan="5"] {
+        flex-direction: column !important;
+        padding: 3rem 1rem !important;
+        border: none !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .session-table td[colspan="5"]::before {
+        display: none !important;
+    }
 }

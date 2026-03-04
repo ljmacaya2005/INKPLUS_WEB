@@ -78,8 +78,6 @@ body {
 .dashboard-wrapper {
 	display: flex;
 	min-height: 100vh;
-	position: relative;
-	z-index: 1;
 }
 
 /* Sidebar removal - delegated to global.css */

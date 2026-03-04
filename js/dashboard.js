@@ -9,7 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!overlay && sidebar) {
         overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
-        document.body.appendChild(overlay);
+        if (sidebar.parentNode) {
+            // Inject just before the sidebar inside the wrapper to guarantee shared stacking context
+            sidebar.parentNode.insertBefore(overlay, sidebar);
+        } else {
+            // Fallback for safety
+            document.body.appendChild(overlay);
+        }
     }
 
     const toggleSidebar = () => {

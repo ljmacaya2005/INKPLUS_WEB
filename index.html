@@ -38,6 +38,11 @@
             user-select: none;
         }
 
+        .selectable-text {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+
         body {
             background-color: var(--bg-dark);
             min-height: 100vh;
@@ -278,13 +283,13 @@
 
         .token-text {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            color: #94a3b8;
+            font-size: 0.65rem;
+            color: var(--primary-color);
             word-break: break-all;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 5px;
+            white-space: normal;
+            margin-top: 8px;
+            opacity: 0.8;
+            line-height: 1.4;
         }
 
         /* Info Cards */
@@ -511,7 +516,7 @@
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </div>
-                    <div class="token-text" id="manual-token">Generating secure packet...</div>
+                    <div class="token-text selectable-text" id="manual-token">Generating secure packet...</div>
                 </div>
 
                 <!-- Mobile Info View -->
@@ -698,19 +703,50 @@
             }
         }
 
-        window.copyToken = () => {
+        window.copyToken = async () => {
             const token = document.getElementById('manual-token').textContent;
-            navigator.clipboard.writeText(token);
-            Swal.fire({
-                toast: true,
-                position: 'top',
-                icon: 'success',
-                title: 'Token Copied to Clipboard',
-                showConfirmButton: false,
-                timer: 1500,
-                background: 'rgba(20, 20, 20, 0.95)',
-                color: '#fff'
-            });
+
+            try {
+                // Primary: Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(token);
+                } else {
+                    // Fallback: execCommand('copy') for non-secure or older mobile
+                    const textArea = document.createElement("textarea");
+                    textArea.value = token;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    textArea.style.top = "0";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'success',
+                    title: 'Token Copied to Clipboard',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    background: 'rgba(20, 20, 20, 0.95)',
+                    color: '#fff'
+                });
+            } catch (err) {
+                console.error('Copy failed:', err);
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'error',
+                    title: 'Copy Failed. Please select text manually.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    background: 'rgba(20, 20, 20, 0.95)',
+                    color: '#fff'
+                });
+            }
         };
 
         if (document.readyState === 'loading') {
