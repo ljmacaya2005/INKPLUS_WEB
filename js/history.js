@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         Swal.fire(
             'Import Complete',
-            `Successfully imported < b > ${importedCount}</b > archival records. < br > <span class="text-secondary small">Skipped duplicates/errors: ${errorsCount}</span>`,
+            `Successfully imported <b>${importedCount}</b> archival records. <br><span class="text-secondary small">Skipped duplicates/errors: ${errorsCount}</span>`,
             importedCount > 0 ? 'success' : 'info'
         ).then(() => {
             fetchAndRenderHistory();
@@ -405,9 +405,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const dateStr = window.formatDateTime ? window.formatDateTime(t.updated_at || t.created_at) : new Date(t.updated_at || t.created_at).toLocaleString();
 
             Swal.fire({
-                title: `< span class= "text-primary fw-bold font-monospace badge bg-primary bg-opacity-10 px-3 py-2 border border-primary border-opacity-25 shadow-sm" > ${t.ticket_code}</span > `,
+                title: `<span class="text-primary fw-bold font-monospace badge bg-primary bg-opacity-10 px-3 py-2 border border-primary border-opacity-25 shadow-sm">${t.ticket_code}</span>`,
                 html: `
-< div class= "text-start mx-auto" style = "max-width: 450px; font-size: 0.95rem;" >
+<div class="text-start mx-auto" style="max-width: 450px; font-size: 0.95rem;">
                         <div class="p-3 bg-body-tertiary rounded-4 mb-3 border border-light border-opacity-10 shadow-sm">
                             <h6 class="fw-bold mb-3 text-uppercase text-secondary small tracking-tight">Customer Information</h6>
                             <p class="mb-2 d-flex justify-content-between border-bottom pb-2"><strong>Client:</strong> <span class="text-main fw-medium">${cName}</span></p>
@@ -432,7 +432,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </span>
                         </div>
                         </div>
-                    </div>
                 `,
                 showCloseButton: true,
                 showConfirmButton: false,

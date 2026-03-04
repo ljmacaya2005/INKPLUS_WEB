@@ -56,7 +56,7 @@ async function fetchAndRenderJobs() {
 
         if (!tickets || tickets.length === 0) {
             container.innerHTML = `
-                < div class= "col-12 text-center py-5" >
+                <div class="col-12 text-center py-5">
                 <img src="assets/empty.svg" alt="No Jobs" style="max-width: 150px; opacity: 0.5;" class="mb-3 d-none">
                     <h5 class="text-secondary fw-bold">No Active Jobs Found</h5>
                     <p class="text-secondary small mt-2">All tasks are completed or no new jobs have been scheduled.</p>
@@ -83,7 +83,7 @@ async function fetchAndRenderJobs() {
             if (ticket.status === 'Ready') badgeClass = 'bg-success text-white';
 
             htmlPayload += `
-            < div class= "col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster" >
+            <div class="col-md-6 col-xl-4 animate__animated animate__zoomIn animate__faster">
             <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden transition-all hover-lift bg-body-tertiary border border-light border-opacity-10" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
 
                 <!-- Top Progress Bar (Visual indicator) -->
@@ -124,7 +124,7 @@ async function fetchAndRenderJobs() {
                             ${createdDate}
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-light border-0 rounded-pill px-3 shadow-sm hover-lift text-main fw-bold" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket))}" style="background: rgba(var(--bs-primary-rgb), 0.1);">
+                            <button class="btn btn-sm btn-light border-0 rounded-pill px-3 shadow-sm hover-lift text-main fw-bold" onclick="viewJobPanel(this)" data-ticket="${encodeURIComponent(JSON.stringify(ticket).replace(/'/g, '&#39;'))}" style="background: rgba(var(--bs-primary-rgb), 0.1);">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View
                             </button>
                             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm hover-lift fw-bold update-status-btn"
@@ -137,7 +137,7 @@ async function fetchAndRenderJobs() {
                     </div>
                 </div>
             </div>
-                </div >
+                </div>
             `;
         });
 
@@ -150,7 +150,7 @@ async function fetchAndRenderJobs() {
 
     } catch (error) {
         console.error("Job Fetching Error:", error);
-        container.innerHTML = `< div class="col-12 text-center text-danger py-5" > <strong>Failed to load jobs matrix.</strong></div > `;
+        container.innerHTML = `<div class="col-12 text-center text-danger py-5"><strong>Failed to load jobs matrix.</strong></div>`;
     }
 }
 
@@ -164,7 +164,7 @@ function handleStatusUpdate(e) {
     Swal.fire({
         title: 'Update Progress Status',
         html: `
-            < h6 class="font-monospace text-primary mb-3" > Ticket: ${ticketCode}</h6 >
+            <h6 class="font-monospace text-primary mb-3">Ticket: ${ticketCode}</h6>
             <select id="newStatusSelect" class="form-select form-select-lg mb-3">
                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                 <option value="Diagnosing" ${currentStatus === 'Diagnosing' ? 'selected' : ''}>Diagnosing</option>
@@ -208,7 +208,7 @@ function handleStatusUpdate(e) {
                     }, 'info');
                 }
 
-                Swal.fire('Updated!', `Ticket ${ticketCode} moved to < b > ${newStatus}</b >.`, 'success')
+                Swal.fire('Updated!', `Ticket ${ticketCode} moved to <b>${newStatus}</b>.`, 'success')
                     .then(() => {
                         // Refresh view
                         fetchAndRenderJobs();
@@ -239,9 +239,9 @@ window.viewJobPanel = function (btn) {
         if (t.status === 'Ready') badgeClass = 'bg-success text-white';
 
         Swal.fire({
-            title: `< span class="fw-bold tracking-tight text-main ms-2" > Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span > `,
+            title: `<span class="fw-bold tracking-tight text-main ms-2">Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span>`,
             html: `
-            < div class="text-start mt-3 px-1" style = "font-size: 0.95rem;" >
+            <div class="text-start mt-3 px-1" style="font-size: 0.95rem;">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
                         <span class="badge ${badgeClass} fs-6 px-3 py-2 rounded-pill shadow-sm">${t.status}</span>
                         <span class="small text-secondary fw-semibold bg-body-tertiary px-3 py-1 rounded-pill border border-light border-opacity-10 shadow-sm">${dateStr}</span>
@@ -269,7 +269,7 @@ window.viewJobPanel = function (btn) {
                         <label class="small text-muted fw-bold text-uppercase mb-2 d-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Issue / Description</label>
                         <p class="mb-0 text-main fst-italic fw-medium" style="line-height: 1.6;">"${t.issue_description || 'No detailed issue description provided.'}"</p>
                     </div>
-                </div >
+                </div>
             `,
             showCloseButton: true,
             showConfirmButton: false,

@@ -139,9 +139,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const loadStats = async () => {
             // Count Jobs (Tasks)
             const { count: jobCount } = await window.sb
-                .from('jobs')
+                .from('repair_tickets')
                 .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId);
+                .eq('handled_by', userId);
 
             if (els.tasks) els.tasks.textContent = jobCount || '0';
 

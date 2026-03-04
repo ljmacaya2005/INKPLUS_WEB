@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- IP ALLOWLIST SECURITY CHECK ---
         // --- IP ALLOWLIST SECURITY CHECK (TERMINAL PERSISTENCE) ---
         const checkIPAllowlist = async () => {
-            const deviceId = localStorage.getItem('inkplus_device_id');
+            const deviceId = window.getPersistentDeviceId();
             if (!deviceId) return false;
 
             try {
@@ -698,133 +698,133 @@ const startSessionGuard = () => {
     }, 30000);
 };
 
-// Start the guard if Supabase is initialized
-const verifySB = setInterval(() => {
-    if (window.sb) {
-        clearInterval(verifySB);
-        startSessionGuard();
-    }
-}, 500);
+tart the guard if Supabase is initialized
+t verifySB = setInterval(() => {
+    window.sb) {
+    rInterval(verifySB);
+    tSessionGuard();
+    
+00);
 
-// --- Browser Tab Closure Detection (Unload) ---
-window.isNavigatingInternal = false;
+    // --- Browser Tab Closure Detection (Unload) ---
+    window.isNavigatingInternal = false;
 
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('a');
-    if (link && (!link.href.startsWith('http') || link.href.startsWith(window.location.origin))) {
-        window.isNavigatingInternal = true;
-    }
-});
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && (!link.href.startsWith('http') || link.href.startsWith(window.location.origin))) {
+            window.isNavigatingInternal = true;
+        }
+    });
 
-document.addEventListener('submit', () => { window.isNavigatingInternal = true; });
+    document.addEventListener('submit', () => { window.isNavigatingInternal = true; });
 
-// Detect keyboard reload (F5 or Ctrl/Cmd + R)
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r') || (e.metaKey && e.key.toLowerCase() === 'r')) {
-        window.isNavigatingInternal = true;
-    }
-});
+    // Detect keyboard reload (F5 or Ctrl/Cmd + R)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r') || (e.metaKey && e.key.toLowerCase() === 'r')) {
+            window.isNavigatingInternal = true;
+        }
+    });
 
-const handleTabClose = () => {
-    // If the user is just navigating internally or refreshing the page, SKIP the offline ping!
-    if (window.isNavigatingInternal) return;
+    const handleTabClose = () => {
+        // If the user is just navigating internally or refreshing the page, SKIP the offline ping!
+        if (window.isNavigatingInternal) return;
 
-    // When the tab dies completely, use native Fetch Keepalive to guarantee the network request
-    // reaches Supabase before the process memory shuts down.
-    const userId = localStorage.getItem('user_id');
-    const token = localStorage.getItem('sb_token');
-    const sessionId = localStorage.getItem('session_record_id');
+        // When the tab dies completely, use native Fetch Keepalive to guarantee the network request
+        // reaches Supabase before the process memory shuts down.
+        const userId = localStorage.getItem('user_id');
+        const token = localStorage.getItem('sb_token');
+        const sessionId = localStorage.getItem('session_record_id');
 
-    if (userId === 'SYSTEM_SETUP_ID') return; // Do not try to clean up ghost setup session
+        if (userId === 'SYSTEM_SETUP_ID') return; // Do not try to clean up ghost setup session
 
-    if (userId && token && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-        // Drop user to offline
-        const urlUsers = `${window.SUPABASE_URL}/rest/v1/users?user_id=eq.${userId}`;
-        fetch(urlUsers, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': window.SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ is_online: false }),
-            keepalive: true
-        }).catch(() => { });
-
-        // End the session log boundary
-        if (sessionId) {
-            const urlSesh = `${window.SUPABASE_URL}/rest/v1/login_sessions?id=eq.${sessionId}`;
-            fetch(urlSesh, {
+        if (userId && token && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+            // Drop user to offline
+            const urlUsers = `${window.SUPABASE_URL}/rest/v1/users?user_id=eq.${userId}`;
+            fetch(urlUsers, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'apikey': window.SUPABASE_ANON_KEY
                 },
-                body: JSON.stringify({ ended_at: new Date().toISOString() }),
+                body: JSON.stringify({ is_online: false }),
                 keepalive: true
             }).catch(() => { });
 
-            // RECORD TELEMETRY: Implicit Logout / Connection Lost
-            const urlAudit = `${window.SUPABASE_URL}/rest/v1/audit_logs`;
-            fetch(urlAudit, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': window.SUPABASE_ANON_KEY,
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    signature: 'SESSION_TERMINATED',
-                    subsystem: 'user.auth',
-                    payload: { event: 'Implicit Disconnect (Page Closed/Killed)', browser: navigator.userAgent },
-                    severity: 'info'
-                }),
-                keepalive: true
-            }).catch(() => { });
+            // End the session log boundary
+            if (sessionId) {
+                const urlSesh = `${window.SUPABASE_URL}/rest/v1/login_sessions?id=eq.${sessionId}`;
+                fetch(urlSesh, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': window.SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ ended_at: new Date().toISOString() }),
+                    keepalive: true
+                }).catch(() => { });
+
+                // RECORD TELEMETRY: Implicit Logout / Connection Lost
+                const urlAudit = `${window.SUPABASE_URL}/rest/v1/audit_logs`;
+                fetch(urlAudit, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': window.SUPABASE_ANON_KEY,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        signature: 'SESSION_TERMINATED',
+                        subsystem: 'user.auth',
+                        payload: { event: 'Implicit Disconnect (Page Closed/Killed)', browser: navigator.userAgent },
+                        severity: 'info'
+                    }),
+                    keepalive: true
+                }).catch(() => { });
+            }
         }
-    }
-};
+    };
 
-// Standard Desktop
-window.addEventListener('beforeunload', handleTabClose);
+    // Standard Desktop
+    window.addEventListener('beforeunload', handleTabClose);
 
-// Mobile Safari / Chrome App Backgrounding Edge Cases
-// We explicitly DO NOT call handleTabClose() on pagehide or 'hidden' visibility.
-// Supabase's Native Presence Channel automatically drops the user's "Active" status 
-// when the websocket sleeps in the background without destroying their DB Session token,
-// preventing hyper-sensitive logouts while still remaining accurate on the Admin panel.
+    // Mobile Safari / Chrome App Backgrounding Edge Cases
+    // We explicitly DO NOT call handleTabClose() on pagehide or 'hidden' visibility.
+    // Supabase's Native Presence Channel automatically drops the user's "Active" status 
+    // when the websocket sleeps in the background without destroying their DB Session token,
+    // preventing hyper-sensitive logouts while still remaining accurate on the Admin panel.
 
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !window.isNavigatingInternal) {
-        // Returned to tab, ping the database to ensure timestamps are fresh
-        const userId = localStorage.getItem('user_id');
-        if (userId && window.sb) {
-            window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId).catch(() => { });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && !window.isNavigatingInternal) {
+            // Returned to tab, ping the database to ensure timestamps are fresh
+            const userId = localStorage.getItem('user_id');
+            if (userId && window.sb) {
+                window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId).catch(() => { });
+            }
         }
-    }
-});
+    });
 
-// Global: Open Job Details Panel
-window.viewJobPanel = function (btn) {
-    try {
-        const ticketStr = btn.getAttribute('data-ticket');
-        const t = JSON.parse(decodeURIComponent(ticketStr));
-        const custName = t.customers ? `${t.customers.first_name || ''} ${t.customers.last_name || ''}`.trim() : 'Unknown';
-        const custPhone = t.customers?.phone_number || 'N/A';
-        const dateStr = new Date(t.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    // Global: Open Job Details Panel
+    window.viewJobPanel = function (btn) {
+        try {
+            const ticketStr = btn.getAttribute('data-ticket');
+            const t = JSON.parse(decodeURIComponent(ticketStr));
+            const custName = t.customers ? `${t.customers.first_name || ''} ${t.customers.last_name || ''}`.trim() : 'Unknown';
+            const custPhone = t.customers?.phone_number || 'N/A';
+            const dateStr = new Date(t.created_at).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 
-        let badgeClass = 'bg-secondary';
-        if (t.status === 'Pending') badgeClass = 'bg-warning text-dark';
-        if (t.status === 'Diagnosing') badgeClass = 'bg-info text-dark';
-        if (t.status === 'Repairing') badgeClass = 'bg-primary text-white';
-        if (t.status === 'Ready') badgeClass = 'bg-success text-white';
+            let badgeClass = 'bg-secondary';
+            if (t.status === 'Pending') badgeClass = 'bg-warning text-dark';
+            if (t.status === 'Diagnosing') badgeClass = 'bg-info text-dark';
+            if (t.status === 'Repairing') badgeClass = 'bg-primary text-white';
+            if (t.status === 'Ready') badgeClass = 'bg-success text-white';
 
-        Swal.fire({
-            title: `<span class="fw-bold tracking-tight text-main ms-2">Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span>`,
-            html: `
+            Swal.fire({
+                title: `<span class="fw-bold tracking-tight text-main ms-2">Job: <span class="font-monospace ms-2">${t.ticket_code}</span></span>`,
+                html: `
                 <div class="text-start mt-3 px-1" style="font-size: 0.95rem;">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
                         <span class="badge ${badgeClass} fs-6 px-3 py-2 rounded-pill shadow-sm">${t.status}</span>
@@ -855,18 +855,18 @@ window.viewJobPanel = function (btn) {
                     </div>
                 </div>
             `,
-            showCloseButton: true,
-            showConfirmButton: false,
-            width: '650px',
-            background: 'var(--card-bg)',
-            color: 'var(--text-main)',
-            customClass: {
-                popup: 'rounded-4 shadow-lg border border-light border-opacity-10',
-                closeButton: 'text-main opacity-75',
-            }
-        });
-    } catch (err) {
-        console.error("Panel Error:", err);
-        Swal.fire('Error', 'Could not open job panel.', 'error');
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: '650px',
+                background: 'var(--card-bg)',
+                color: 'var(--text-main)',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg border border-light border-opacity-10',
+                    closeButton: 'text-main opacity-75',
+                }
+            });
+        } catch (err) {
+            console.error("Panel Error:", err);
+            Swal.fire('Error', 'Could not open job panel.', 'error');
+        }
     }
-}

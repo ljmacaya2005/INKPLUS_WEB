@@ -3,134 +3,225 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>INKPlus — Security Gate</title>
     <link rel="icon" type="image/x-icon" href="assets/logo2.png">
 
     <!-- Bootstrap 5.3 CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts - Inter -->
+    <!-- Google Fonts - Inter & Outfit -->
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="css/animate.min.css" />
 
     <style>
         :root {
             --primary-color: #4A90A4;
-            --primary-glow: rgba(74, 144, 164, 0.3);
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary-glow: rgba(74, 144, 164, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --bg-dark: #07090D;
+            --accent-color: #6BB3C7;
         }
 
         [data-theme="light"] {
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(0, 0, 0, 0.06);
+            --bg-dark: #F0F4F8;
+            --primary-glow: rgba(74, 144, 164, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body {
-            background: radial-gradient(circle at top right, #1a1a1a, #000);
-            min-height: 100vh;
+            background-color: var(--bg-dark);
+            height: 100vh;
+            width: 100vw;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
+            position: relative;
+            touch-action: none;
         }
 
         [data-theme="light"] body {
-            background: radial-gradient(circle at top right, #f8f9fa, #e9ecef);
-            color: #333;
+            color: #1e293b;
         }
 
-        .gate-container {
-            max-width: 450px;
-            width: 90%;
+        /* Ambient Background */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 70% 20%, #14202a 0%, var(--bg-dark) 50%);
+        }
+
+        [data-theme="light"] .ambient-glow {
+            background: radial-gradient(circle at 70% 20%, #e2e8f0 0%, var(--bg-dark) 50%);
+        }
+
+        .glow-sphere {
+            position: absolute;
+            width: 40vh;
+            height: 40vh;
+            background: var(--primary-glow);
+            filter: blur(100px);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.5;
+            animation: moveGlow 20s infinite alternate;
+        }
+
+        @keyframes moveGlow {
+            0% {
+                transform: translate(-5%, -5%);
+            }
+
+            100% {
+                transform: translate(30%, 30%);
+            }
+        }
+
+        /* Compact Layout Grid */
+        .gate-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1100px;
+            padding: 1.5rem;
+            align-items: center;
+            position: relative;
             z-index: 10;
+            max-height: 100vh;
+        }
+
+        @media (min-width: 992px) {
+            .gate-layout {
+                grid-template-columns: 1.1fr 0.9fr;
+                gap: 3rem;
+            }
+        }
+
+        /* Left Side: Brand & Context */
+        .gate-brand-section {
+            text-align: left;
+        }
+
+        .brand-eyebrow {
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 700;
+            font-size: 0.65rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-eyebrow::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background: linear-gradient(to right, var(--primary-color), transparent);
+            max-width: 80px;
+        }
+
+        .main-headline {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme="light"] .main-headline {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        }
+
+        .sub-headline {
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            max-width: 480px;
+            line-height: 1.5;
+        }
+
+        /* Right Side: Security Card */
+        .security-card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .security-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
-            padding: 3rem 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            text-align: center;
+            padding: 2rem;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .security-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, var(--primary-color), transparent 30%);
-            animation: rotate 10s linear infinite;
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .brand-logo {
-            max-width: 120px;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 10px var(--primary-glow));
-        }
-
-        .qr-wrapper {
+        .qr-section {
             background: #fff;
-            padding: 1.5rem;
-            border-radius: 24px;
-            display: inline-block;
-            margin: 1.5rem 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             position: relative;
-            transition: transform 0.3s ease;
+            display: flex;
+            justify-content: center;
         }
 
-        .qr-wrapper:hover {
-            transform: scale(1.02);
-        }
-
+        #qrcode canvas,
         #qrcode img {
-            max-width: 200px;
+            max-width: 100%;
             height: auto;
+            border-radius: 6px;
         }
 
-        .status-badge {
+        .status-pill {
             display: inline-flex;
             align-items: center;
-            padding: 0.5rem 1rem;
-            border-radius: 100px;
+            gap: 6px;
+            padding: 4px 12px;
             background: rgba(74, 144, 164, 0.1);
+            border-radius: 100px;
             color: var(--primary-color);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             border: 1px solid rgba(74, 144, 164, 0.2);
         }
 
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
+        .status-dot {
+            width: 6px;
+            height: 6px;
             background: var(--primary-color);
             border-radius: 50%;
-            margin-right: 8px;
-            box-shadow: 0 0 10px var(--primary-color);
+            box-shadow: 0 0 8px var(--primary-color);
             animation: pulse 2s infinite;
         }
 
@@ -141,7 +232,7 @@
             }
 
             50% {
-                transform: scale(1.5);
+                transform: scale(1.4);
                 opacity: 0.5;
             }
 
@@ -151,107 +242,130 @@
             }
         }
 
-        .gate-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-        }
-
-        .gate-desc {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            line-height: 1.6;
-        }
-
-        .info-island {
+        .token-island {
             background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 1rem;
-            margin-top: 2rem;
-            font-size: 0.8rem;
+            margin-top: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
             text-align: left;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        [data-theme="light"] .info-island {
-            background: rgba(0, 0, 0, 0.03);
+        .token-island:hover {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: var(--primary-color);
         }
 
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
+        .token-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-top: 5px;
         }
 
-        .info-item:last-child {
-            margin-bottom: 0;
+        /* Info Cards */
+        .info-card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem;
+            border-radius: 16px;
+            transition: all 0.3s;
         }
 
         .info-label {
-            opacity: 0.6;
+            font-size: 0.6rem;
+            opacity: 0.5;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
         }
 
         .info-value {
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Floating particles effect */
-        .particles {
-            position: absolute;
+        /* Floating particles */
+        #particles-canvas {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: -1;
+            opacity: 0.3;
             pointer-events: none;
         }
 
-        .version-island {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            padding: 6px 16px;
-            border-radius: 100px;
-            border: 1px solid var(--glass-border);
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 100;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background: #10b981;
-            border-radius: 50%;
-        }
-
-        @media (max-width: 576px) {
-            .security-card {
-                padding: 2rem 1.5rem;
-                border-radius: 24px;
+        /* Mobile Compact Fit */
+        @media (max-width: 991px) {
+            body {
+                overflow: hidden;
+                align-items: center;
+                padding-top: 0;
             }
 
-            .brand-logo {
-                max-width: 100px;
-                margin-bottom: 1.5rem;
-            }
-
-            .gate-title {
-                font-size: 1.25rem;
-            }
-
-            .qr-wrapper {
+            .gate-layout {
+                gap: 1rem;
                 padding: 1rem;
+                transform: scale(0.95);
+                /* Slight shrink to ensure single-view on small screens */
             }
 
-            #qrcode img {
-                max-width: 160px;
+            .gate-brand-section {
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+
+            .sub-headline {
+                margin: 0 auto 1.5rem;
+                font-size: 0.9rem;
+            }
+
+            .security-card {
+                padding: 1.5rem;
+                border-radius: 24px;
+                max-width: 320px;
+            }
+
+            .main-headline {
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .qr-section {
+                margin-bottom: 1rem;
+                padding: 0.75rem;
+            }
+
+            .info-card-grid {
+                grid-template-columns: repeat(2, 1fr);
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .gate-layout {
+                transform: scale(0.85);
             }
         }
     </style>
@@ -263,101 +377,164 @@
 </head>
 
 <body>
-    <div class="gate-container">
-        <div class="security-card animate__animated animate__zoomIn">
-            <img src="assets/logo1.png" alt="INKPlus Logo" class="brand-logo">
+    <div class="ambient-glow">
+        <div class="glow-sphere"></div>
+    </div>
+    <canvas id="particles-canvas"></canvas>
 
-            <div class="status-badge">
-                <div class="pulse-dot"></div>
-                Awaiting Authorization
-            </div>
+    <div class="gate-layout">
+        <!-- Left Section: Immersive Brand Presentation (Desktop Scalability) -->
+        <div class="gate-brand-section animate__animated animate__fadeInLeft">
+            <div class="brand-eyebrow">Terminal Authorization</div>
+            <h1 class="main-headline">Secure Gate Entrance.</h1>
+            <p class="sub-headline">
+                This workstation requires an active security handshake.
+                Please use the authorized mobile terminal to verify your identity and grant network access.
+            </p>
 
-            <h1 class="gate-title">Security Gateway</h1>
-            <p class="gate-desc">Please scan this QR code using an authorized administrator device to grant access to
-                this workstation.</p>
-
-            <div class="qr-wrapper animate__animated animate__fadeIn">
-                <div id="qrcode"></div>
-            </div>
-
-            <h2 class="gate-title mt-2">Workstation Terminal</h2>
-            <p class="text-secondary small mb-4">Requesting network access for node <br><span class="fw-bold"
-                    id="current-ip">Detecting IP...</span></p>
-
-            <div class="mt-4 pt-4 border-top border-white border-opacity-10 text-start">
-                <p class="small text-secondary mb-2 d-flex align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="me-2 text-info">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                    Manual Authorization Token
-                </p>
-                <div class="p-3 rounded-4 bg-black bg-opacity-25 border border-white border-opacity-10 text-break font-monospace mb-2"
-                    style="font-size: 0.65rem; color: #aaa; cursor: pointer; transition: all 0.2s;"
-                    id="manual-key-display" onclick="copyToken()">
-                    Generating token...
+            <div class="info-card-grid d-none d-lg-grid">
+                <div class="info-card">
+                    <div class="info-label">Node Address</div>
+                    <div class="info-value" id="node-ip-lg">Detecting...</div>
                 </div>
-                <p class="text-center text-secondary" style="font-size: 0.6rem;">Click to copy token</p>
-            </div>
-
-            <div class="info-island">
-                <div class="info-item">
-                    <span class="info-label">Current IP:</span>
-                    <span class="info-value" id="current-ip">Detecting...</span>
+                <div class="info-card">
+                    <div class="info-label">Hardware ID</div>
+                    <div class="info-value" id="node-id-lg">Initializing...</div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Device ID:</span>
-                    <span class="info-value text-truncate" style="max-width: 150px;"
-                        id="device-id">Initializing...</span>
+                <div class="info-card">
+                    <div class="info-label">Encryption</div>
+                    <div class="info-value">AES-256 GCM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Section: Compact Security Card (Mobile Perfect View) -->
+        <div class="security-card-container animate__animated animate__zoomIn">
+            <div class="security-card">
+                <div class="text-center mb-4">
+                    <img src="assets/logo1.png" alt="INKPlus" style="max-width: 70px;" class="mb-3">
+                    <div class="status-pill">
+                        <div class="status-dot"></div>
+                        Ready for Sync
+                    </div>
+                </div>
+
+                <div class="qr-section animate__animated animate__fadeIn animate__delay-1s">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="text-center">
+                    <h5 class="fw-bold mb-2">Scan QR Packet</h5>
+                    <p class="small text-secondary px-2">Authorize this node by scanning the encrypted token above using
+                        your staff portal.</p>
+                </div>
+
+                <div class="token-island" onclick="copyToken()">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="info-label mb-0">Manual Authorization Token</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" class="opacity-50">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </div>
+                    <div class="token-text" id="manual-token">Generating secure packet...</div>
+                </div>
+
+                <!-- Mobile Info View -->
+                <div class="info-card-grid d-lg-none mt-4">
+                    <div class="info-card">
+                        <div class="info-label">External IP</div>
+                        <div class="info-value x-small" id="node-ip-sm">...</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Device Hash</div>
+                        <div class="info-value x-small text-truncate" id="node-id-sm">...</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="version-island">
-        <div class="status-dot"></div> <span class="version-label">Gate Active</span>
-        <span class="version-number">v1.2-SEC</span>
-    </div>
+    <!-- Background Logic -->
+    <script>
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.4;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(74, 144, 164, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 70; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
 
     <script src="js/supabase-config.js"></script>
     <script src="js/color-modes.js"></script>
 
     <script>
-        // Security Gate Logic
         async function initGate() {
-            const waitForSb = () => new Promise(resolve => {
-                if (window.sb) return resolve();
-                const interval = setInterval(() => {
-                    if (window.sb) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, 100);
-            });
-
-            await waitForSb();
-
             try {
-                // 1. Get or Generate Device ID
-                let deviceId = localStorage.getItem('inkplus_device_id');
+                if (!window.sb) {
+                    setTimeout(initGate, 100);
+                    return;
+                }
+
+                // 1. Identity Fetching
+                let deviceId = window.getPersistentDeviceId();
                 if (!deviceId) {
-                    deviceId = 'DEV-' + CryptoJS.lib.WordArray.random(16).toString();
+                    deviceId = 'MESH-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    window.setCookie('inkplus_device_id', deviceId);
                     localStorage.setItem('inkplus_device_id', deviceId);
                 }
-                document.getElementById('device-id').textContent = deviceId;
 
-                // 2. Get Public IP
+                document.getElementById('node-id-lg').textContent = deviceId;
+                document.getElementById('node-id-sm').textContent = deviceId;
+
+                // 2. IP Retrieval
                 const ipResponse = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipResponse.json();
                 const ipAddress = ipData.ip;
-                document.getElementById('current-ip').textContent = ipAddress;
 
-                // 3. SECURE HANDSHAKE: Persistent Terminal Verification
-                // We prioritize the Device ID for continuity, but keep IPs updated for audit trails
-                const { data: existing, error: checkError } = await window.sb
+                document.getElementById('node-ip-lg').textContent = ipAddress;
+                document.getElementById('node-ip-sm').textContent = ipAddress;
+
+                // 3. Authorization Check
+                const { data: existing } = await window.sb
                     .from('ip_allowlist')
                     .select('*')
                     .eq('device_id', deviceId)
@@ -365,95 +542,19 @@
                     .maybeSingle();
 
                 if (existing) {
-                    console.info("[Security] Registered terminal detected. Synchronizing network footprint...");
-
-                    // If IP address has shifted (Common on dynamic/mobile networks), refresh the registry
                     if (existing.ip_address !== ipAddress) {
-                        try {
-                            await window.sb
-                                .from('ip_allowlist')
-                                .update({
-                                    ip_address: ipAddress,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', existing.id);
-
-                            // Log the shift for security audit
-                            await window.sb.from('audit_logs').insert([{
-                                signature: 'TERMINAL_NETWORK_SHIFT',
-                                subsystem: 'system.security',
-                                payload: { device: deviceId, old_ip: existing.ip_address, new_ip: ipAddress, event: 'IP address updated for registered terminal' },
-                                severity: 'info'
-                            }]);
-                        } catch (e) {
-                            console.warn("Failed to sync new IP address, proceeding with cached credentials.");
-                        }
+                        try { await window.sb.from('ip_allowlist').update({ ip_address: ipAddress }).eq('id', existing.id); } catch (e) { }
                     }
-
                     window.location.replace('login.html');
                     return;
                 }
 
-                // --- SYSTEM INITIALIZATION OVERRIDE (Audio Request) ---
-                // Continuous high-frequency polling when the table is suspected to be empty
-                const startInitializationWatch = () => {
-                    const watchInt = setInterval(async () => {
-                        try {
-                            const { count, error: countErr } = await window.sb
-                                .from('ip_allowlist')
-                                .select('*', { count: 'exact', head: true });
-
-                            if (!countErr && count === 0) {
-                                clearInterval(watchInt);
-                                console.warn("SYSTEM SECURITY INITIALIZATION: Provisioning first terminal...");
-
-                                const { error: regErr } = await window.sb
-                                    .from('ip_allowlist')
-                                    .insert([{
-                                        ip_address: ipAddress,
-                                        device_id: deviceId,
-                                        is_active: true
-                                    }]);
-
-                                if (!regErr) {
-                                    try {
-                                        await window.sb.from('audit_logs').insert([{
-                                            signature: 'SECURITY_INIT_AUTO_AUTH',
-                                            subsystem: 'system.security',
-                                            payload: { ip: ipAddress, device: deviceId, event: 'First-Node Auto Registration (Polling)' },
-                                            severity: 'warning'
-                                        }]);
-                                    } catch (e) { }
-
-                                    Swal.fire({
-                                        icon: 'info',
-                                        title: 'Primary Node Authorized',
-                                        text: 'Initialization detected. This node has been auto-provisioned as the primary administrative terminal.',
-                                        timer: 2000,
-                                        showConfirmButton: false,
-                                        background: 'rgba(20, 20, 20, 0.95)',
-                                        color: '#fff'
-                                    }).then(() => {
-                                        window.location.replace('login.html');
-                                    });
-                                }
-                            }
-                        } catch (e) { }
-                    }, 500); // Poll every 500ms (Half-second high priority check)
-                };
-
-                startInitializationWatch();
-                // --- END OVERRIDE ---
-
-                // 4. Encrypt data for QR
-                const rawData = JSON.stringify({
-                    i: ipAddress,  // ip -> i (shorter)
-                    d: deviceId,   // did -> d (shorter)
-                    t: Date.now()  // ts -> t (shorter)
-                });
+                // 4. Token Assembly
+                const rawData = JSON.stringify({ i: ipAddress, d: deviceId, t: Date.now() });
                 const encrypted = CryptoJS.AES.encrypt(rawData, SECURITY_KEY).toString();
+                document.getElementById('manual-token').textContent = encrypted;
 
-                // 5. Generate QR Code
+                // 5. QR Pack Generation
                 new QRCode(document.getElementById("qrcode"), {
                     text: encrypted,
                     width: 200,
@@ -463,68 +564,58 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
 
-                // 6. Display Manual Key
-                const keyDisplay = document.getElementById('manual-key-display');
-                if (keyDisplay) {
-                    keyDisplay.textContent = encrypted;
-                }
-
-                window.copyToken = () => {
-                    navigator.clipboard.writeText(encrypted);
-                    Swal.fire({
-                        toast: true,
-                        position: 'top',
-                        icon: 'success',
-                        title: 'Token copied to clipboard',
-                        showConfirmButton: false,
-                        timer: 1500,
-                        background: 'rgba(20, 20, 20, 0.95)',
-                        color: '#fff'
-                    });
-                };
-
-                // 7. Setup Realtime Listener
-                window.sb
-                    .channel('ip_allowlist_changes')
-                    .on('postgres_changes', {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'ip_allowlist',
-                        filter: `device_id=eq.${deviceId}`
-                    }, (payload) => {
-                        if (payload.new.is_active) {
+                // 6. Mesh Listener
+                window.sb.channel('gate_channel')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'ip_allowlist', filter: `device_id=eq.${deviceId}` }, (pl) => {
+                        if (pl.new && pl.new.is_active) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Access Granted',
-                                text: 'This device has been authorized.',
+                                title: 'Handshake Verified',
+                                text: 'Access granted by administrator. Syncing...',
                                 showConfirmButton: false,
                                 timer: 1500,
                                 background: 'rgba(20, 20, 20, 0.95)',
                                 color: '#fff'
-                            }).then(() => {
-                                window.location.replace('login.html');
-                            });
-                        }
-                    })
-                    .on('postgres_changes', {
-                        event: 'UPDATE',
-                        schema: 'public',
-                        table: 'ip_allowlist',
-                        filter: `device_id=eq.${deviceId}`
-                    }, (payload) => {
-                        if (payload.new.is_active) {
-                            window.location.replace('login.html');
+                            }).then(() => window.location.replace('login.html'));
                         }
                     })
                     .subscribe();
 
+                // 7. Auto-Initialization Case
+                const initMonitor = setInterval(async () => {
+                    const { count, error } = await window.sb.from('ip_allowlist').select('*', { count: 'exact', head: true });
+                    if (!error && count === 0) {
+                        clearInterval(initMonitor);
+                        await window.sb.from('ip_allowlist').insert([{ ip_address: ipAddress, device_id: deviceId, is_active: true }]);
+                        window.location.replace('login.html');
+                    }
+                }, 1500);
+
             } catch (err) {
-                console.error('Gate Init Error:', err);
-                document.getElementById('current-ip').textContent = 'Error detecting IP';
+                console.error('Security Mesh Error:', err);
             }
         }
 
-        initGate();
+        window.copyToken = () => {
+            const token = document.getElementById('manual-token').textContent;
+            navigator.clipboard.writeText(token);
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                icon: 'success',
+                title: 'Token Copied to Clipboard',
+                showConfirmButton: false,
+                timer: 1500,
+                background: 'rgba(20, 20, 20, 0.95)',
+                color: '#fff'
+            });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGate);
+        } else {
+            initGate();
+        }
     </script>
 </body>
 

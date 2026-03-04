@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		// The 'GlobalSecurityMonitor' in supabase-config.js handles INSTANT real-time detection.
 		// This serves as a secondary sanity check every 5 seconds.
 		const startSecurityGuard = async () => {
-			const deviceId = localStorage.getItem('inkplus_device_id');
+			const deviceId = window.getPersistentDeviceId();
 
 			const securityInterval = setInterval(async () => {
 				if (!deviceId) {
@@ -273,7 +273,7 @@ async function handleLogin(event) {
 
 			localStorage.setItem('isLoggedIn', 'true');
 			localStorage.setItem('username', 'Setup Administrator');
-			localStorage.setItem('sb_token', window.SUPABASE_SERVICE_KEY || 'SETUP_OVERRIDE_TOKEN');
+			localStorage.setItem('sb_token', 'ADMIN_SETUP_OVERRIDE');
 			localStorage.setItem('user_id', 'SYSTEM_SETUP_ID');
 			localStorage.setItem('session_record_id', 'setup_mode');
 
@@ -350,6 +350,10 @@ async function handleLogin(event) {
 
 			if (sessionData && !sessErr) {
 				localStorage.setItem('session_record_id', sessionData.id);
+				// Initialize security listeners for the new session
+				if (typeof window.initGlobalSecurityMonitor === 'function') {
+					window.initGlobalSecurityMonitor();
+				}
 			}
 		} catch (e) {
 			console.warn("Failed to update presence status", e);

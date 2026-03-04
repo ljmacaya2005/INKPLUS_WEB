@@ -634,8 +634,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (result.isConfirmed) {
                         const { fname, lname, email, password, roleId } = result.value;
 
-                        // 0. Service Key Authorization for Safe Cross-Account Creation
-                        if (!window.SUPABASE_SERVICE_KEY) {
+                        // Use the secure internal admin client if available
+                        let adminClient = window.getSupabaseAdmin();
+
+                        if (!adminClient) {
                             const { value: key } = await Swal.fire({
                                 title: 'Admin Authorization',
                                 text: 'Enter Supabase Service Role Key. This is required to create a new user without automatically logging you out of your current session.',
@@ -649,7 +651,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                             });
 
                             if (key) {
-                                window.SUPABASE_SERVICE_KEY = key;
+                                adminClient = (window.supabase && window.supabase.createClient)
+                                    ? window.supabase.createClient(window.SUPABASE_URL, key)
+                                    : supabase.createClient(window.SUPABASE_URL, key);
                             } else {
                                 Swal.fire('Cancelled', 'User provision cancelled.', 'info');
                                 return; // Abort
@@ -670,15 +674,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 throw new Error('This email address is already officially registered in the system.');
                             }
 
-                            // Initialize Admin Client
-                            let adminClient;
-                            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                                adminClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
-                            } else if (window.supabase && window.supabase.createClient) {
-                                adminClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
-                            } else {
-                                throw new Error("Supabase SDK not loaded.");
-                            }
+                            // adminClient is already established from the step above
+                            if (!adminClient) throw new Error("Supabase Admin Client not initialized.");
 
                             // 1. Auth Admin CreateUser (Bypasses Auto-Login completely!)
                             const { data, error } = await adminClient.auth.admin.createUser({
@@ -750,8 +747,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (!decryptedPass) throw new Error("Failed to decrypt the requested password. Security key mismatch.");
 
-                // 3. Service Key Authorization
-                if (!window.SUPABASE_SERVICE_KEY) {
+                // 3. Admin Client Check
+                let adminClient = window.getSupabaseAdmin();
+
+                if (!adminClient) {
                     const { value: key } = await Swal.fire({
                         title: 'Admin Authorization',
                         text: 'Enter Supabase Service Role Key to apply this password update.',
@@ -764,7 +763,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         inputValidator: (val) => !val && 'Service Key is required!'
                     });
 
-                    if (key) window.SUPABASE_SERVICE_KEY = key;
+                    if (key) {
+                        adminClient = (window.supabase && window.supabase.createClient)
+                            ? window.supabase.createClient(window.SUPABASE_URL, key)
+                            : supabase.createClient(window.SUPABASE_URL, key);
+                    }
                     else return;
                 }
 
@@ -778,15 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     color: 'var(--text-main)'
                 });
 
-                // Initialize Admin Client
-                let adminClient;
-                if (typeof supabase !== 'undefined' && supabase.createClient) {
-                    adminClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
-                } else if (window.supabase && window.supabase.createClient) {
-                    adminClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_SERVICE_KEY);
-                } else {
-                    throw new Error("Supabase SDK not loaded.");
-                }
+                // Admin Client is ready
 
                 // 4. Update User Password in Auth
                 if (!userId || userId === 'undefined') {
