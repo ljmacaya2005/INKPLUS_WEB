@@ -175,84 +175,81 @@ window.initGlobalSecurityMonitor = async function () {
     }
 
     // --- GLOBAL SECURITY PERIMETER ---
-    // Initialize a persistent channel that lives for the duration of the page
     window.securityPerimeter = window.sb.channel('security-perimeter');
 
     window.securityPerimeter
         .on('broadcast', { event: 'TERMINATE_SESSION' }, (payload) => {
-            const pk = payload.payload;
+            console.log("[Security] Broadcast received:", payload);
+            const pk = payload.payload; // Supabase wraps the 'payload' key
             const myId = localStorage.getItem('user_id');
             const mySessId = localStorage.getItem('session_record_id');
 
+            if (!pk) return;
+
             // Strategy: Kick if it's my ID, or if it's a GLOBAL purge and I am NOT the admin who started it
             const isMe = pk.userId === myId || (pk.sessionId && pk.sessionId == mySessId);
-            const isGlobalPurge = pk.userId === 'ALL_EXCEPT_OWNER' && pk.initiatorId !== myId;
+            const isGlobalPurge = (pk.userId === 'ALL_EXCEPT_OWNER' || pk.userId === 'ALL') && pk.initiatorId !== myId;
 
             if (isMe || isGlobalPurge) {
-                console.error("[Security] REMOTE TERMINATION SIGNAL RECEIVED. DEPLOYING LOGOUT PROTOCOL.");
-                forceLogout();
+                console.error("[Security] REMOTE TERMINATION SIGNAL VERIFIED. EXECUTING KICK-OUT.");
+                window.forceLogout();
             }
         })
         .subscribe();
+}
 
-    // --- RECOVERY HELPER ---
-    async function forceLogout() {
-        console.warn("[Security] System Disconnect Protocol: ACTIVATED.");
+// --- GLOBAL RECOVERY HELPER (Accessible everywhere) ---
+window.forceLogout = async function () {
+    console.warn("[Security] System Disconnect Protocol: ACTIVATED.");
 
-        // Clear all persistent states immediately to prevent auto-relogin
-        localStorage.clear();
-        sessionStorage.clear();
+    // 1. Wipe all local data immediately
+    localStorage.clear();
+    sessionStorage.clear();
 
-        // Attempt clean signout but don't let it block the redirect
-        if (window.sb) {
-            window.sb.auth.signOut().catch(() => { });
-        }
+    // 2. Kill cookies (Terminals)
+    document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-        // Hard destructive redirect to prevent back-button hijacking
-        window.location.replace('index.html?reason=security_revoked&t=' + Date.now());
+    // 3. Kill the Supabase Auth session
+    if (window.sb) {
+        window.sb.auth.signOut().catch(() => { });
     }
 
-    // 3. Fail-Safe Security Heartbeat (Fallback Polling)
-    // Every 10 seconds, do a hard check to ensure RLS/Security policies are still met
-    // This catches scenarios where the Realtime websocket might have dropped or isn't enabled.
-    setInterval(async () => {
-        if (!userId || userId === 'SYSTEM_SETUP_ID') return;
+    // 4. Hard destructive redirect
+    window.location.replace('index.html?reason=security_revoked&t=' + Date.now());
+};
 
-        try {
-            // Check terminal status
-            if (deviceId) {
-                const { data: terminal } = await window.sb.from('ip_allowlist').select('is_active').eq('device_id', deviceId).maybeSingle();
-                if (!terminal || !terminal.is_active) {
-                    console.warn("[Security] Heartbeat: Terminal revoked.");
-                    forceLogout();
-                    return;
-                }
-            }
+// 3. Fail-Safe Security Heartbeat (Fallback Polling)
+setInterval(async () => {
+    const userId = localStorage.getItem('user_id');
+    const sessionId = localStorage.getItem('session_record_id');
+    const deviceId = window.getPersistentDeviceId();
 
-            // Check User status
-            const { data: user } = await window.sb.from('users').select('is_active, is_online').eq('user_id', userId).single();
-            if (!user || user.is_active === false || user.is_online === false) {
-                console.warn("[Security] Heartbeat: User suspended or disconnected.");
+    if (!userId || userId === 'SYSTEM_SETUP_ID' || !window.sb) return;
+
+    try {
+        // Check User status
+        const { data: user } = await window.sb.from('users').select('is_active, is_online').eq('user_id', userId).maybeSingle();
+        if (!user || user.is_active === false || user.is_online === false) {
+            console.warn("[Security] Heartbeat: Access Revoked.");
+            window.forceLogout();
+            return;
+        }
+
+        // Check Session status
+        if (sessionId) {
+            const { data: session } = await window.sb.from('login_sessions').select('ended_at').eq('id', sessionId).maybeSingle();
+            if (!session || session.ended_at !== null) {
+                console.warn("[Security] Heartbeat: Session ended.");
                 forceLogout();
                 return;
             }
-
-            // Check Session status
-            if (sessionId) {
-                const { data: session } = await window.sb.from('login_sessions').select('ended_at').eq('id', sessionId).maybeSingle();
-                if (!session || session.ended_at !== null) {
-                    console.warn("[Security] Heartbeat: Session ended.");
-                    forceLogout();
-                    return;
-                }
-            }
-        } catch (err) {
-            // If the query itself fails with a 401/403 (due to RLS if we're unauthorized), it's a security signal
-            if (err.status === 401 || err.status === 403 || (err.message && err.message.includes('permission denied'))) {
-                console.warn("[Security] Heartbeat: Permission denied.");
-                forceLogout();
-            }
         }
-    }, 10000); // 10 second polling fallback
-};
+    } catch (err) {
+        // If the query itself fails with a 401/403 (due to RLS if we're unauthorized), it's a security signal
+        if (err.status === 401 || err.status === 403 || (err.message && err.message.includes('permission denied'))) {
+            console.warn("[Security] Heartbeat: Permission denied.");
+            forceLogout();
+        }
+    }
+}, 10000); // 10 second polling fallback
 

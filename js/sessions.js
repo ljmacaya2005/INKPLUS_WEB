@@ -60,16 +60,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
-                        // 1. Mark visually offline on admin grid
-                        const { error } = await window.sb
+                        const adminClient = window.getSupabaseAdmin();
+                        if (!adminClient) throw new Error("Administrative Authority not found.");
+
+                        // 1. Mark visually offline on admin grid (God Mode)
+                        await adminClient
                             .from('users')
                             .update({ is_online: false })
-                            .neq('user_id', localStorage.getItem('user_id')); // Keep current admin logged in
-
-                        if (error) throw error;
+                            .neq('user_id', localStorage.getItem('user_id'));
 
                         // 2. Kill actual active session registries
-                        await window.sb
+                        await adminClient
                             .from('login_sessions')
                             .update({ ended_at: new Date().toISOString() })
                             .neq('user_id', localStorage.getItem('user_id'))
@@ -221,16 +222,17 @@ function handleDisconnectUser(e) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
-                // 1. Mark visually offline on the admin grid
-                const { error } = await window.sb
+                const adminClient = window.getSupabaseAdmin();
+                if (!adminClient) throw new Error("Administrative Authority not found.");
+
+                // 1. Mark visually offline on the admin grid (God Mode)
+                await adminClient
                     .from('users')
                     .update({ is_online: false })
                     .eq('user_id', targetUserId);
 
-                if (error) throw error;
-
-                // 2. Terminate the actual login_session records natively so their local heartbeat catches it
-                await window.sb
+                // 2. Terminate the actual login_session records natively
+                await adminClient
                     .from('login_sessions')
                     .update({ ended_at: new Date().toISOString() })
                     .eq('user_id', targetUserId)

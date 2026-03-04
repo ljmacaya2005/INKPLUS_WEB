@@ -40,16 +40,24 @@
 
         body {
             background-color: var(--bg-dark);
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             font-family: 'Inter', sans-serif;
             position: relative;
-            touch-action: none;
+            touch-action: pan-y;
+        }
+
+        @media (min-width: 992px) {
+            body {
+                height: 100vh;
+                overflow: hidden;
+            }
         }
 
         [data-theme="light"] body {
@@ -147,6 +155,7 @@
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -263,10 +272,9 @@
             font-size: 0.6rem;
             color: #94a3b8;
             word-break: break-all;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
             margin-top: 5px;
         }
 
@@ -316,56 +324,76 @@
             pointer-events: none;
         }
 
-        /* Mobile Compact Fit */
+        /* Mobile Responsive Refinement (No-Ruined-UI Protocol) */
         @media (max-width: 991px) {
             body {
-                overflow: hidden;
-                align-items: center;
-                padding-top: 0;
+                align-items: flex-start;
+                padding: 2rem 1rem;
             }
 
             .gate-layout {
-                gap: 1rem;
-                padding: 1rem;
-                transform: scale(0.95);
-                /* Slight shrink to ensure single-view on small screens */
+                gap: 2rem;
+                padding: 1rem 0;
+                transform: none;
+                /* Removed restrictive scaling */
+                max-height: none;
             }
 
             .gate-brand-section {
                 text-align: center;
-                margin-bottom: 1rem;
+                margin-bottom: 0.5rem;
             }
 
             .sub-headline {
                 margin: 0 auto 1.5rem;
-                font-size: 0.9rem;
+                font-size: 0.95rem;
+                max-width: 100%;
             }
 
             .security-card {
-                padding: 1.5rem;
-                border-radius: 24px;
-                max-width: 320px;
+                padding: 1.75rem;
+                border-radius: 28px;
+                max-width: 100%;
+                width: 350px;
+                margin: 0 auto;
             }
 
             .main-headline {
-                font-size: 1.75rem;
-                margin-bottom: 0.5rem;
+                font-size: clamp(1.75rem, 8vw, 2.5rem);
+                margin-bottom: 0.75rem;
             }
 
             .qr-section {
-                margin-bottom: 1rem;
-                padding: 0.75rem;
+                margin-bottom: 1.25rem;
+                padding: 0.85rem;
             }
 
             .info-card-grid {
                 grid-template-columns: repeat(2, 1fr);
-                margin-top: 1rem;
+                margin-top: 1.25rem;
             }
         }
 
-        @media (max-width: 380px) {
-            .gate-layout {
-                transform: scale(0.85);
+        @media (max-width: 480px) {
+            body {
+                padding: 1.5rem 0.75rem;
+            }
+
+            .security-card {
+                width: 100%;
+                padding: 1.5rem;
+            }
+
+            .main-headline {
+                font-size: 2rem;
+            }
+
+            .brand-eyebrow {
+                justify-content: center;
+            }
+
+            .brand-eyebrow::after {
+                display: none;
             }
         }
     </style>
