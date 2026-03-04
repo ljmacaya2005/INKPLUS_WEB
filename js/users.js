@@ -1125,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const scannerModalElement = document.getElementById('scannerModal');
             if (!scannerModalElement) return;
 
-            const scannerModalInstance = new bootstrap.Modal(scannerModalElement);
+            const scannerModalInstance = bootstrap.Modal.getOrCreateInstance(scannerModalElement);
             scannerModalInstance.show();
 
             const config = {

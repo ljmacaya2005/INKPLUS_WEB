@@ -144,8 +144,10 @@ window.initGlobalSecurityMonitor = async function () {
                 filter: `user_id=eq.${userId}`
             }, (payload) => {
                 const isSuspended = payload.eventType === 'DELETE' || (payload.new && payload.new.is_active === false);
-                if (isSuspended) {
-                    console.error("[Security] ACCOUNT SUSPENDED OR REMOVED REAL-TIME.");
+                const isDisconnected = payload.new && payload.new.is_online === false;
+
+                if (isSuspended || isDisconnected) {
+                    console.error("[Security] ACCESS REVOKED OR DISCONNECTED REAL-TIME.");
                     forceLogout();
                 }
             })
@@ -204,9 +206,9 @@ window.initGlobalSecurityMonitor = async function () {
             }
 
             // Check User status
-            const { data: user } = await window.sb.from('users').select('is_active').eq('user_id', userId).single();
-            if (!user || !user.is_active) {
-                console.warn("[Security] Heartbeat: User suspended.");
+            const { data: user } = await window.sb.from('users').select('is_active, is_online').eq('user_id', userId).single();
+            if (!user || user.is_active === false || user.is_online === false) {
+                console.warn("[Security] Heartbeat: User suspended or disconnected.");
                 forceLogout();
                 return;
             }
