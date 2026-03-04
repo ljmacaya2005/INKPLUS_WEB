@@ -62,43 +62,38 @@ window.SECURITY_KEY = SECURITY_KEY;
 
 window.sb = null;
 
-function initSupabase() {
-    let client = null;
+// --- GLOBAL RECOVERY HELPER ---
+window.forceLogout = async function (wipeTerminal = false) {
+    console.warn("[Security] System Disconnect Protocol: ACTIVATED. WipeTerminal:", wipeTerminal);
 
-    if (typeof supabase !== 'undefined' && supabase.createClient) {
-        client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else if (window.supabase && window.supabase.createClient) {
-        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Get terminal ID before wipe if we need to preserve it
+    const deviceId = window.getPersistentDeviceId();
+
+    // 1. Wipe local data
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 2. Restore Terminal ID if NOT wiping
+    if (!wipeTerminal && deviceId) {
+        localStorage.setItem('inkplus_device_id', deviceId);
+        window.setCookie('inkplus_device_id', deviceId);
     }
 
-    if (client) {
-        window.sb = client;
-        console.log("Supabase Initialized Successfully");
-
-        // --- GLOBAL REAL-TIME SECURITY ENFORCER ---
-        if (typeof window.initGlobalSecurityMonitor === 'function') {
-            window.initGlobalSecurityMonitor();
-        }
-
-        return true;
-    } else {
-        console.log("Supabase SDK not found yet...");
-        return false;
+    // 3. Kill cookies only if wiping
+    if (wipeTerminal) {
+        document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
-}
 
-if (!initSupabase()) {
-    let retries = 0;
-    const retryInt = setInterval(() => {
-        if (initSupabase() || retries > 20) {
-            clearInterval(retryInt);
-            if (!window.sb) console.error("Failed to initialize Supabase after multiple attempts.");
-        }
-        retries++;
-    }, 200);
-}
+    // 4. Kill the Supabase Auth session
+    if (window.sb) {
+        try { await window.sb.auth.signOut(); } catch (e) { }
+    }
 
-// --- GLOBAL REAL-TIME SECURITY MONITOR ---
+    // 5. Hard destructive redirect
+    const target = wipeTerminal ? 'index.html' : 'login.html';
+    window.location.replace(`${target}?reason=security_event&t=${Date.now()}`);
+};
+
 // --- GLOBAL REAL-TIME SECURITY MONITOR ---
 window.initGlobalSecurityMonitor = async function () {
     const path = window.location.pathname;
@@ -170,7 +165,7 @@ window.initGlobalSecurityMonitor = async function () {
 
     // 2. Account & Session Guard (Only if logged in)
     if (userId && userId !== 'SYSTEM_SETUP_ID') {
-        const userChannel = window.sb
+        window.sb
             .channel('user-security-guard')
             .on('postgres_changes', {
                 event: '*', // Listen to all changes (UPDATE/DELETE)
@@ -190,7 +185,7 @@ window.initGlobalSecurityMonitor = async function () {
 
         // Watch for Session Termination
         if (sessionId) {
-            const sessionChannel = window.sb
+            window.sb
                 .channel('session-security-guard')
                 .on('postgres_changes', {
                     event: '*', // Listen to all changes (UPDATE/DELETE)
@@ -198,7 +193,6 @@ window.initGlobalSecurityMonitor = async function () {
                     table: 'login_sessions',
                     filter: `id=eq.${sessionId}`
                 }, (payload) => {
-                    // Force logout if session marked as ended or deleted
                     const isEnded = payload.eventType === 'DELETE' || (payload.new && payload.new.ended_at !== null);
                     if (isEnded) {
                         console.error("[Security] SESSION TERMINATED REAL-TIME.");
@@ -211,59 +205,48 @@ window.initGlobalSecurityMonitor = async function () {
 
     // --- GLOBAL SECURITY PERIMETER ---
     window.securityPerimeter = window.sb.channel('security-perimeter');
-
     window.securityPerimeter
         .on('broadcast', { event: 'TERMINATE_SESSION' }, (payload) => {
-            console.log("[Security] Broadcast received:", payload);
-            const pk = payload.payload; // Supabase wraps the 'payload' key
+            const pk = payload.payload;
             const myId = localStorage.getItem('user_id');
             const mySessId = localStorage.getItem('session_record_id');
-
             if (!pk) return;
 
-            // Strategy: Kick if it's my ID, or if it's a GLOBAL purge and I am NOT the admin who started it
             const isMe = pk.userId === myId || (pk.sessionId && pk.sessionId == mySessId);
             const isGlobalPurge = (pk.userId === 'ALL_EXCEPT_OWNER' || pk.userId === 'ALL') && pk.initiatorId !== myId;
 
             if (isMe || isGlobalPurge) {
-                console.error("[Security] REMOTE TERMINATION SIGNAL VERIFIED. EXECUTING KICK-OUT.");
+                console.error("[Security] REMOTE TERMINATION SIGNAL RECEIVED.");
                 window.forceLogout(false);
             }
         })
         .subscribe();
 }
 
-// --- GLOBAL RECOVERY HELPER ---
-window.forceLogout = async function (wipeTerminal = false) {
-    console.warn("[Security] System Disconnect Protocol: ACTIVATED. WipeTerminal:", wipeTerminal);
-
-    // Get terminal ID before wipe if we need to preserve it
-    const deviceId = window.getPersistentDeviceId();
-
-    // 1. Wipe local data
-    localStorage.clear();
-    sessionStorage.clear();
-
-    // 2. Restore Terminal ID if NOT wiping
-    if (!wipeTerminal && deviceId) {
-        localStorage.setItem('inkplus_device_id', deviceId);
-        window.setCookie('inkplus_device_id', deviceId);
+function initSupabase() {
+    let client = null;
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+        client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else if (window.supabase && window.supabase.createClient) {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // 3. Kill cookies only if wiping
-    if (wipeTerminal) {
-        document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    if (client) {
+        window.sb = client;
+        console.log("Supabase Initialized Successfully");
+        window.initGlobalSecurityMonitor();
+        return true;
     }
+    return false;
+}
 
-    // 4. Kill the Supabase Auth session
-    if (window.sb) {
-        try { await window.sb.auth.signOut(); } catch (e) { }
-    }
-
-    // 5. Hard destructive redirect
-    const target = wipeTerminal ? 'index.html' : 'login.html';
-    window.location.replace(`${target}?reason=security_event&t=${Date.now()}`);
-};
-
-
+if (!initSupabase()) {
+    let retries = 0;
+    const retryInt = setInterval(() => {
+        if (initSupabase() || retries > 20) {
+            clearInterval(retryInt);
+        }
+        retries++;
+    }, 200);
+}
 
