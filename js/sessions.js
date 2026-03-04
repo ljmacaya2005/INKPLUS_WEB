@@ -75,12 +75,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .neq('user_id', localStorage.getItem('user_id'))
                             .is('ended_at', null);
 
-                        // 3. Log to telemetry
-                        if (window.logAction) {
-                            window.logAction('GLOBAL_SESSION_PURGE', 'user.security', { event: 'All non-admin active sessions terminated' }, 'critical');
-                        }
+                        // 3. Broadcast Termination to all (Wildcard userId handled by security monitor logic)
+                        window.sb.channel('security-perimeter').send({
+                            type: 'broadcast',
+                            event: 'TERMINATE_SESSION',
+                            payload: { userId: 'ALL_EXCEPT_OWNER', initiatorId: localStorage.getItem('user_id') }
+                        });
 
-                        Swal.fire('Purged', 'All other active sessions have been terminated from the cloud.', 'success');
+                        Swal.fire('Purged', 'Global session purge broadcasted.', 'success');
                         fetchAndRenderSessions(); // re-sync
                     } catch (err) {
                         console.error('Purge error:', err);
@@ -232,18 +234,20 @@ function handleDisconnectUser(e) {
                     .eq('user_id', targetUserId)
                     .is('ended_at', null);
 
-                // 3. Log to Telemetry
-                if (window.logAction) {
-                    window.logAction('ADMIN_FORCED_DISCONNECT', 'user.security', { target_id: targetUserId, method: 'admin_forced_disconnect' }, 'warning');
-                }
+                // 3. Broadcast Termination Signal (Sub-second Immediate Kickout)
+                window.sb.channel('security-perimeter').send({
+                    type: 'broadcast',
+                    event: 'TERMINATE_SESSION',
+                    payload: { userId: targetUserId }
+                });
 
-                Swal.fire('Disconnected', 'User session terminated from the cloud registry.', 'success')
+                Swal.fire('Disconnected', 'User session terminated and broadcast signal sent.', 'success')
                     .then(() => {
                         fetchAndRenderSessions(); // Refresh table visually
                     });
             } catch (err) {
                 console.error("Disconnect error: ", err);
-                Swal.fire('Error', 'Failed to disconnect user. Check console.', 'error');
+                Swal.fire('Error', 'Failed to disconnect user.', 'error');
             }
         }
     });

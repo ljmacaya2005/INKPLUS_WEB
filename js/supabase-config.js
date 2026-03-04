@@ -174,17 +174,37 @@ window.initGlobalSecurityMonitor = async function () {
         }
     }
 
+    // 3. Universal Security Broadcast (Sub-second Immediate Kickout)
+    window.sb.channel('security-perimeter')
+        .on('broadcast', { event: 'TERMINATE_SESSION' }, (payload) => {
+            const pk = payload.payload;
+            const myId = localStorage.getItem('user_id');
+
+            // Strategy: Kick if it's my ID, or if it's a GLOBAL purge and I am NOT the admin who started it
+            const isMe = pk.userId === myId || pk.sessionId == sessionId;
+            const isGlobalPurge = pk.userId === 'ALL_EXCEPT_OWNER' && pk.initiatorId !== myId;
+
+            if (isMe || isGlobalPurge) {
+                console.error("[Security] REMOTE TERMINATION SIGNAL RECEIVED VIA BROADCAST.");
+                forceLogout();
+            }
+        })
+        .subscribe();
+
     // --- RECOVERY HELPER ---
     async function forceLogout() {
-        if (window.sb) {
-            try {
-                await window.sb.auth.signOut();
-            } catch (e) { }
-        }
+        console.warn("[Security] Executing Force Logout Protocol...");
+
+        // Clear all persistent states immediately to prevent auto-relogin
         localStorage.clear();
-        // Clear device registration cookie only if terminal revoked
-        // window.location.replace('index.html');
-        // Let's use a more direct approach
+        sessionStorage.clear();
+
+        // Attempt clean signout but don't let it block the redirect
+        if (window.sb) {
+            window.sb.auth.signOut().catch(() => { });
+        }
+
+        // Immediate hard redirect
         window.location.href = 'index.html?reason=security_revoked';
     }
 
