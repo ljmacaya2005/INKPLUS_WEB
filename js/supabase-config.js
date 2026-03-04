@@ -110,17 +110,19 @@ window.initGlobalSecurityMonitor = async function () {
     if (!window.sb) return;
 
     // --- A. INITIAL SANITY CHECK (On Page Load) ---
+    let terminalRecordId = null;
     if (!isPublicPage) {
         try {
             // 1. Terminal Check
             if (deviceId) {
-                const { data: terminal } = await window.sb.from('ip_allowlist').select('is_active').eq('device_id', deviceId).maybeSingle();
+                const { data: terminal } = await window.sb.from('ip_allowlist').select('id, is_active').eq('device_id', deviceId).maybeSingle();
                 if (!terminal || !terminal.is_active) {
                     console.warn("[Security] Terminal unauthorized on load.");
                     const shouldWipe = !terminal; // Wipe only if record is GONE from DB
                     window.forceLogout(shouldWipe, 'index.html');
                     return;
                 }
+                terminalRecordId = terminal.id;
             } else {
                 console.warn("[Security] No device ID found. Redirecting to gate.");
                 window.location.replace('index.html');
@@ -144,14 +146,14 @@ window.initGlobalSecurityMonitor = async function () {
     // --- B. PERSISTENT REAL-TIME MESH ---
 
     // 1. Terminal Authorization Guard (Persistent Real-Time)
-    if (!isPublicPage && deviceId) {
+    if (!isPublicPage && terminalRecordId) {
         window.sb
             .channel('terminal-security')
             .on('postgres_changes', {
                 event: '*',
                 schema: 'public',
                 table: 'ip_allowlist',
-                filter: `device_id=eq.${deviceId}`
+                filter: `id=eq.${terminalRecordId}`
             }, (payload) => {
                 const isDeleted = payload.eventType === 'DELETE';
                 const isSuspended = payload.new && payload.new.is_active === false;
