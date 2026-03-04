@@ -99,16 +99,56 @@ if (!initSupabase()) {
 }
 
 // --- GLOBAL REAL-TIME SECURITY MONITOR ---
+// --- GLOBAL REAL-TIME SECURITY MONITOR ---
 window.initGlobalSecurityMonitor = async function () {
-    const isGate = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+    const path = window.location.pathname;
+    const isGate = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+    const isPublicTracker = path.endsWith('tracker.html');
+
+    // Whitelist public pages from terminal enforcement
+    const isPublicPage = isGate || isPublicTracker;
+
     const deviceId = window.getPersistentDeviceId();
     const userId = localStorage.getItem('user_id');
     const sessionId = localStorage.getItem('session_record_id');
 
     if (!window.sb) return;
 
+    // --- A. INITIAL SANITY CHECK (On Page Load) ---
+    if (!isPublicPage) {
+        try {
+            // 1. Terminal Check
+            if (deviceId) {
+                const { data: terminal } = await window.sb.from('ip_allowlist').select('is_active').eq('device_id', deviceId).maybeSingle();
+                if (!terminal || !terminal.is_active) {
+                    console.warn("[Security] Terminal unauthorized on load.");
+                    window.forceLogout(true);
+                    return;
+                }
+            } else {
+                console.warn("[Security] No device ID found. Redirecting to gate.");
+                window.location.replace('index.html');
+                return;
+            }
+
+            // 2. Account & Session Check (If user is supposedly logged in)
+            if (userId && userId !== 'SYSTEM_SETUP_ID') {
+                const { data: user } = await window.sb.from('users').select('is_active, is_online').eq('user_id', userId).maybeSingle();
+                if (!user || user.is_active === false) {
+                    console.warn("[Security] User account revoked on load.");
+                    window.forceLogout(false);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.error("[Security] Initial monitor check failed:", e);
+        }
+    }
+
+    // --- B. PERSISTENT REAL-TIME MESH ---
+
     // 1. Terminal Authorization Guard (Persistent Real-Time)
-    if (!isGate && deviceId) {
+    if (!isPublicPage && deviceId) {
         window.sb
             .channel('terminal-security')
             .on('postgres_changes', {

@@ -144,35 +144,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- Polling and Live State ---
-    let liveTrackerInterval = null;
-    let activeTrackerCode = null;
+    // --- Real-time Sync Engine ---
+    let liveTrackerChannel = null;
 
     function startLiveTracking(code) {
-        if (liveTrackerInterval) clearInterval(liveTrackerInterval);
-        activeTrackerCode = code;
+        if (liveTrackerChannel) liveTrackerChannel.unsubscribe();
 
-        // High-speed silent polling without visual disruption
-        liveTrackerInterval = setInterval(async () => {
-            if (!activeTrackerCode) return;
-            const sb = window.sb;
-            if (!sb) return;
+        const sb = window.sb;
+        if (!sb) return;
 
-            const { data, error } = await sb
-                .from('repair_tickets')
-                .select('ticket_code, device_brand, device_model, status, created_at, service_category')
-                .eq('ticket_code', activeTrackerCode)
-                .single();
-
-            if (data && !error) {
-                populateResultUI(data, true);
-            }
-        }, 5000); // 5-second live sync
+        // Listen for EXACT changes to this specific ticket
+        liveTrackerChannel = sb.channel(`tracker-${code}`)
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'repair_tickets',
+                filter: `ticket_code=eq.${code}`
+            }, (payload) => {
+                if (payload.new) {
+                    console.info("[Tracker] Remote sync detected for ticket:", code);
+                    populateResultUI(payload.new, true);
+                }
+            })
+            .subscribe();
     }
 
     function stopLiveTracking() {
-        if (liveTrackerInterval) clearInterval(liveTrackerInterval);
-        activeTrackerCode = null;
+        if (liveTrackerChannel) {
+            liveTrackerChannel.unsubscribe();
+            liveTrackerChannel = null;
+        }
     }
 
     // --- Dynamic UI Population Logic ---
