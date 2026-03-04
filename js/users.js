@@ -1177,8 +1177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .from('ip_allowlist')
                             .update({
                                 ip_address: ip,
-                                is_active: true,
-                                updated_at: new Date().toISOString()
+                                is_active: true
                             })
                             .eq('id', existing.id);
                     } else {
@@ -1267,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .maybeSingle();
 
                 if (existing) {
-                    await window.sb.from('ip_allowlist').update({ ip_address: ip, is_active: true, updated_at: new Date().toISOString() }).eq('id', existing.id);
+                    await window.sb.from('ip_allowlist').update({ ip_address: ip, is_active: true }).eq('id', existing.id);
                 } else {
                     await window.sb.from('ip_allowlist').insert([{ ip_address: ip, device_id: did, is_active: true }]);
                 }

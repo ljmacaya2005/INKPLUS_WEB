@@ -16,9 +16,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     try {
-        await waitForSupabase();
+        const sb = await waitForSupabase();
         console.log("Supabase connected in Sessions.");
+
+        // Initial Fetch
         await fetchAndRenderSessions();
+
+        // --- REAL-TIME SYNC ENGINE ---
+        // Listen for ANY changes (joins, leaves, IP shifts) on the users table
+        window.sb.channel('sessions-live-registry')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'users'
+            }, () => {
+                console.log("[Sessions] Remote registry shift detected. Refreshing grid...");
+                fetchAndRenderSessions();
+            })
+            .subscribe();
+
     } catch (err) {
         console.error("Fatal Error initializing Sessions Module: ", err);
         const container = document.getElementById('sessionsTableBody');
@@ -77,12 +93,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- CORE FETCH FUNCTION ---
-async function fetchAndRenderSessions() {
+window.fetchAndRenderSessions = async function () {
     const tbody = document.getElementById('sessionsTableBody');
     if (!tbody) return;
 
     try {
-        // We fetch active users (is_online = true) mapped to their profiles
+        // Fetch users who are online OR have had activity in the last 2 minutes as a safety margin
+        const twoMinutesAgo = new Date(Date.now() - (2 * 60 * 1000)).toISOString();
+
         const { data: onlineUsers, error } = await window.sb
             .from('users')
             .select(`
@@ -90,15 +108,19 @@ async function fetchAndRenderSessions() {
                 profiles (first_name, last_name, email),
                 roles (role_name)
             `)
-            .eq('is_online', true)
+            .or(`is_online.eq.true,updated_at.gt.${twoMinutesAgo}`)
             .order('updated_at', { ascending: false });
 
         if (error) throw error;
 
         // Update Stat Cards
-        document.getElementById('totalActiveStat').textContent = onlineUsers ? onlineUsers.length.toString().padStart(2, '0') : '00';
-        document.getElementById('peakTodayStat').textContent = onlineUsers && onlineUsers.length > 5 ? onlineUsers.length.toString().padStart(2, '0') : '08'; // Example logic
-        document.getElementById('incidentsStat').textContent = '00'; // Baseline
+        const activeCount = onlineUsers ? onlineUsers.length : 0;
+        document.getElementById('totalActiveStat').textContent = activeCount.toString().padStart(2, '0');
+
+        // Realistic Peak (minimum 1, or the current count)
+        const peakToday = Math.max(activeCount, 1);
+        document.getElementById('peakTodayStat').textContent = peakToday.toString().padStart(2, '0');
+        document.getElementById('incidentsStat').textContent = '00';
 
         if (!onlineUsers || onlineUsers.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-secondary">
@@ -120,8 +142,8 @@ async function fetchAndRenderSessions() {
             const initials = firstName.charAt(0) + (lastName !== 'User' ? lastName.charAt(0) : '');
 
             const isMe = u.user_id === myUserId;
-            const networkIP = u.current_ip || (isMe ? '192.168.1.1 (Local)' : 'Remote Network');
-            const device = u.current_device || 'Unknown Web Agent';
+            const networkIP = u.current_ip || (isMe ? 'Local Host' : 'Remote Proxy');
+            const device = u.current_device || 'Web Interface';
 
             const activeSince = new Date(u.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
@@ -150,13 +172,13 @@ async function fetchAndRenderSessions() {
                                 <line x1="8" y1="21" x2="16" y2="21" />
                                 <line x1="12" y1="17" x2="12" y2="21" />
                             </svg>
-                            <span class="small fw-medium">${device}</span>
+                            <span class="small fw-medium text-truncate" style="max-width:120px;">${device}</span>
                         </div>
                     </td>
                     <td class="py-3">
                         <div class="d-flex flex-column align-items-start">
                             <span class="badge bg-success text-white rounded-pill px-3 shadow-sm mb-1"><span class="badge-pulse d-inline-block me-1" style="width:6px;height:6px;background:white"></span> Active Now</span>
-                            <span class="text-secondary smaller mt-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Since ${activeSince}</span>
+                            <span class="text-secondary smaller mt-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pinned: ${activeSince}</span>
                         </div>
                     </td>
                     <td class="pe-4 text-end py-3">
@@ -175,9 +197,11 @@ async function fetchAndRenderSessions() {
 
     } catch (err) {
         console.error("Session Fetching Error:", err);
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Failed to load registry network matrix.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Security matrix fetch failed.</td></tr>`;
     }
-}
+};
+
+
 
 // --- HANDLE INDIVIDUAL DISCONNECT ---
 function handleDisconnectUser(e) {

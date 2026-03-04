@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Ensure Config is available
             if (!window.systemConfig) {
-                const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).single();
+                const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).maybeSingle();
                 if (config) window.systemConfig = config;
             }
 

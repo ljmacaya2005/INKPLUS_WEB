@@ -53,15 +53,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 		};
 
 		// Run initial check and then start the persistent guard
-		const initialCheck = await window.sb
-			.from('ip_allowlist')
-			.select('is_active')
-			.eq('device_id', localStorage.getItem('inkplus_device_id'))
-			.maybeSingle();
+		// Run initial check and then start the persistent guard
+		const deviceId = window.getPersistentDeviceId();
+		const { count: userCount, error: countErr } = await window.sb.from('users').select('*', { count: 'exact', head: true });
 
-		if (!initialCheck.data || !initialCheck.data.is_active) {
-			window.location.replace('index.html');
-			return;
+		// SYSTEM SETUP BYPASS: If no users exist, allow access to login for initial setup (setup@inkplus.com)
+		if (!countErr && userCount > 0) {
+			const initialCheck = await window.sb
+				.from('ip_allowlist')
+				.select('is_active')
+				.eq('device_id', deviceId)
+				.maybeSingle();
+
+			if (!initialCheck.data || !initialCheck.data.is_active) {
+				console.warn("[Security] Terminal not authorized. Redirecting to Security Gate.");
+				window.location.replace('index.html');
+				return;
+			}
+		} else if (userCount === 0) {
+			console.info("[Security] System is unprovisioned. Bypassing terminal guard for initial setup.");
 		}
 
 		startSecurityGuard();
@@ -70,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		let maintenanceMode = false;
 
 		try {
-			const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).single();
+			const { data: config } = await window.sb.from('system_settings').select('*').eq('id', 1).maybeSingle();
 			if (config) {
 				splashEnabled = config.splash_enabled ?? true;
 				maintenanceMode = config.maintenance_mode || false;

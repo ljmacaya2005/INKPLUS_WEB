@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (sb) {
             try {
-                const { data: config } = await sb.from('system_settings').select('splash_enabled').eq('id', 1).single();
+                const { data: config } = await sb.from('system_settings').select('splash_enabled').eq('id', 1).maybeSingle();
                 if (config) splashEnabled = config.splash_enabled ?? true;
             } catch (e) {
                 console.warn("Tracker Settings check failed, using defaults.");

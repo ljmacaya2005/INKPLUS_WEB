@@ -1,24 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Mobile Menu Toggle ---
+    // --- Mobile Menu Toggle & Overlay ---
+    const sidebar = document.getElementById('sidebar');
     const mobileToggle = document.getElementById('mobileMenuToggle');
     const mobileNavToggle = document.getElementById('mobileNavToggle');
-    const sidebar = document.getElementById('sidebar');
+
+    // Dynamically inject overlay if missing
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay && sidebar) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
 
     const toggleSidebar = () => {
-        if (sidebar) sidebar.classList.toggle('show');
+        if (sidebar) {
+            const isShowing = sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('active', isShowing);
+        }
     };
 
     if (mobileToggle) mobileToggle.addEventListener('click', toggleSidebar);
     if (mobileNavToggle) mobileNavToggle.addEventListener('click', toggleSidebar);
+    if (overlay) overlay.addEventListener('click', toggleSidebar);
 
-    // Close menus on outside click
+    // Close menus on outside click (redundancy)
     document.addEventListener('click', (e) => {
         const isOutsideSidebar = sidebar && !sidebar.contains(e.target);
-        const isNotMobileToggle = !mobileToggle?.contains(e.target);
-        const isNotNavToggle = !mobileNavToggle?.contains(e.target);
+        const isNotMobileToggle = mobileToggle?.contains(e.target) || mobileNavToggle?.contains(e.target);
 
-        if (sidebar && sidebar.classList.contains('show') && isOutsideSidebar && isNotMobileToggle && isNotNavToggle) {
+        if (sidebar && sidebar.classList.contains('show') && isOutsideSidebar && !isNotMobileToggle) {
             sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('active');
         }
     });
 
@@ -32,7 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fullScreenBtn = document.getElementById('dockFull');
     if (fullScreenBtn) {
-        fullScreenBtn.addEventListener('click', toggleFullScreen);
+        fullScreenBtn.addEventListener('click', () => {
+            if (typeof window.toggleFullScreen === 'function') {
+                window.toggleFullScreen();
+            }
+        });
     }
 
     // Update Fullscreen Icon on change
@@ -99,8 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Update the IP in the Allowlist Table
                     await sb.from('ip_allowlist')
                         .update({
-                            ip_address: currentIp,
-                            updated_at: new Date().toISOString()
+                            ip_address: currentIp
                         })
                         .eq('id', data.id);
 
@@ -181,7 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .single();
 
         if (error || !userData || !userData.roles) {
-            console.error('[RBAC] Failed to fetch permissions or no role assigned.', error);
+            console.error('[RBAC] Failed to fetch permissions or no role assigned. Activating Failsafe Reveal.', error);
+            // FAILSAFE: If we can't get roles, reveal all items to avoid a blank sidebar
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                item.style.removeProperty('display');
+                item.classList.add('reveal');
+                item.removeAttribute('aria-hidden');
+            });
             return;
         }
 
@@ -283,6 +304,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // 4. Protect Current Page (Redirect if unauthorized)
         const path = window.location.pathname;
         const currentPage = path.split('/').pop(); // "users.html"
+
+        // 5. Reveal Miscellaneous Items (Sign Out, etc.)
+        // Any item that is NOT explicitly governed by the mapping should be revealed
+        const allNavItems = document.querySelectorAll('.sidebar-nav .nav-item');
+        allNavItems.forEach(item => {
+            const link = item.querySelector('.nav-link');
+            if (link) {
+                const href = link.getAttribute('href');
+                const isGoverned = Object.values(mapping).includes(href);
+                if (!isGoverned) {
+                    item.style.removeProperty('display');
+                    item.classList.add('reveal');
+                    item.removeAttribute('aria-hidden');
+                }
+            }
+        });
 
         // Check if the current page is managed by RBAC
         const governedKey = Object.keys(mapping).find(key => mapping[key] === currentPage);
@@ -463,19 +500,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initRBAC();
     fetchDashboardStats();
-});
 
-// --- SYSTEM CONTROLLER: Settings & Policies ---
-window.initSystemPolicies = async (sb, isAdmin) => {
-    try {
-        const { data: config } = await sb.from('system_settings').select('*').eq('id', 1).single();
-        if (!config) return;
 
-        window.systemConfig = config; // Expose globally for date formatting
+    // --- SYSTEM CONTROLLER: Settings & Policies ---
+    window.initSystemPolicies = async (sb, isAdmin) => {
+        try {
+            let { data: config, error } = await sb.from('system_settings').select('*').eq('id', 1).maybeSingle();
 
-        // 1. SYSTEM ISOLATION (Maintenance Mode / Deep Lockdown)
-        if (config.maintenance_mode && !isAdmin) {
-            document.body.innerHTML = `
+            // Auto-Initialize if row 1 is missing
+            if (!config && !error) {
+                const defaultConfig = {
+                    id: 1,
+                    maintenance_mode: false,
+                    splash_enabled: true,
+                    system_id: 'PROD-CLUSTER-A',
+                    lock_threshold: 5
+                };
+                const { data: newConfig } = await sb.from('system_settings').upsert([defaultConfig]).select().single();
+                config = newConfig;
+            }
+
+            if (!config) return;
+
+            window.systemConfig = config; // Expose globally for date formatting
+
+            // 1. SYSTEM ISOLATION (Maintenance Mode / Deep Lockdown)
+            if (config.maintenance_mode && !isAdmin) {
+                document.body.innerHTML = `
                 <div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-dark text-white text-center p-5" style="background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);">
                     <div class="mb-4 animate__animated animate__pulse animate__infinite" style="filter: drop-shadow(0 0 15px rgba(220, 53, 69, 0.4));">
                         <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -486,16 +537,16 @@ window.initSystemPolicies = async (sb, isAdmin) => {
                     <div class="mt-5 small text-secondary">Node: ${config.system_id || 'PROD-CLUSTER'}</div>
                 </div>
             `;
-            // Block all future execution on this page
-            throw new Error("[POLICY] System Locked");
-        }
+                // Block all future execution on this page
+                throw new Error("[POLICY] System Locked");
+            }
 
-        // 2. SPLASH SCREEN (Once per session)
-        if (config.splash_enabled && !sessionStorage.getItem('splashShown')) {
-            const splash = document.createElement('div');
-            splash.id = 'systemSplash';
-            splash.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-gradient); background-attachment: fixed; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);';
-            splash.innerHTML = `
+            // 2. SPLASH SCREEN (Once per session)
+            if (config.splash_enabled && !sessionStorage.getItem('splashShown')) {
+                const splash = document.createElement('div');
+                splash.id = 'systemSplash';
+                splash.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-gradient); background-attachment: fixed; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);';
+                splash.innerHTML = `
                 <div class="text-center animate__animated animate__fadeIn">
                     <div class="mb-4 d-flex justify-content-center">
                         <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items:center; justify-content:center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(74, 144, 164, 0.2);">
@@ -509,202 +560,206 @@ window.initSystemPolicies = async (sb, isAdmin) => {
                     <p class="mt-3 text-secondary small fw-bold tracking-widest text-uppercase opacity-50">Synchronizing Environment...</p>
                 </div>
             `;
-            document.body.style.overflow = 'hidden';
-            document.body.appendChild(splash);
-            sessionStorage.setItem('splashShown', 'true');
+                document.body.style.overflow = 'hidden';
+                document.body.appendChild(splash);
+                sessionStorage.setItem('splashShown', 'true');
 
-            setTimeout(() => {
-                splash.style.opacity = '0';
-                splash.style.transform = 'scale(1.1)';
-                document.body.style.overflow = '';
-                setTimeout(() => splash.remove(), 1000);
-            }, 2500);
-        }
-
-        // 3. AUTO-LOCK (Strict Inactivity Compliance)
-        const thresholdSelectValue = config.lock_threshold || '30';
-        const timeoutMs = parseInt(thresholdSelectValue) * 60 * 1000;
-        let idleTimer;
-        let lastActivity = Date.now();
-
-        const logoutUser = async () => {
-            const timeSinceLastActivity = Date.now() - lastActivity;
-            // Additional fallback check to ensure strictly timeoutMs has passed
-            if (timeSinceLastActivity >= timeoutMs) {
-                // Terminate session record via telemetry explicitly
-                const userId = localStorage.getItem('user_id');
-                const sessionId = localStorage.getItem('session_record_id');
-
-                if (window.logAction) {
-                    await window.logAction('AUTO_LOGOUT_TRIGGERED', 'user.security', { event: 'Inactivity Threshold Crossed', threshold_minutes: thresholdSelectValue }, 'warning');
-                }
-
-                if (sessionId && window.sb) {
-                    await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId);
-                }
-
-                if (userId && window.sb) {
-                    await window.sb.from('users').update({ is_online: false }).eq('user_id', userId);
-                }
-
-                Swal.fire({
-                    title: 'Security Timeout',
-                    text: 'Your session has been terminated due to compliance inactivity.',
-                    icon: 'warning',
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                }).then(() => {
-                    window.isNavigatingInternal = false;
-                    localStorage.clear();
-                    location.replace('index.html');
-                });
-            } else {
-                resetIdleTimer(); // False positive, recalculate
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    splash.style.transform = 'scale(1.1)';
+                    document.body.style.overflow = '';
+                    setTimeout(() => splash.remove(), 1000);
+                }, 2500);
             }
-        };
 
-        const resetIdleTimer = () => {
-            lastActivity = Date.now();
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(logoutUser, timeoutMs);
-        };
+            // 3. AUTO-LOCK (Strict Inactivity Compliance)
+            const thresholdSelectValue = config.lock_threshold || '30';
+            const timeoutMs = parseInt(thresholdSelectValue) * 60 * 1000;
+            let idleTimer;
+            let lastActivity = Date.now();
 
-        // Events to reset the timer (throttle for performance)
-        let debounceTimer;
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
-            window.addEventListener(evt, () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(resetIdleTimer, 500);
-            }, { passive: true });
-        });
-        resetIdleTimer();
+            const logoutUser = async () => {
+                const timeSinceLastActivity = Date.now() - lastActivity;
+                // Additional fallback check to ensure strictly timeoutMs has passed
+                if (timeSinceLastActivity >= timeoutMs) {
+                    // Terminate session record via telemetry explicitly
+                    const userId = localStorage.getItem('user_id');
+                    const sessionId = localStorage.getItem('session_record_id');
 
-    } catch (err) {
-        if (err.message !== "[POLICY] System Locked") {
-            console.warn("[SystemPolicies] Error:", err);
-        }
-    }
-};
+                    if (window.logAction) {
+                        await window.logAction('AUTO_LOGOUT_TRIGGERED', 'user.security', { event: 'Inactivity Threshold Crossed', threshold_minutes: thresholdSelectValue }, 'warning');
+                    }
 
-// --- GLOBAL DATE/TIME FORMATTER ---
-window.formatDateTime = (isoString) => {
-    if (!isoString) return 'N/A';
-    const config = window.systemConfig || {};
-    const date = new Date(isoString);
+                    if (sessionId && window.sb) {
+                        await window.sb.from('login_sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId);
+                    }
 
-    // Fallback options
-    const locale = 'en-US';
-    const tz = config.timezone === 'UTC+8' ? 'Asia/Singapore' : (config.timezone === 'UTC-5' ? 'America/New_York' : 'UTC');
-    const hc = config.time_format === '12h' ? 'h12' : 'h23';
+                    if (userId && window.sb) {
+                        await window.sb.from('users').update({ is_online: false }).eq('user_id', userId);
+                    }
 
-    try {
-        return date.toLocaleString(locale, {
-            timeZone: tz,
-            hourCycle: hc,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        }).replace(/\//g, '-');
-    } catch (e) {
-        return date.toISOString().replace('T', ' ').split('.')[0];
-    }
-};
+                    Swal.fire({
+                        title: 'Security Timeout',
+                        text: 'Your session has been terminated due to compliance inactivity.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.isNavigatingInternal = false;
+                        localStorage.clear();
+                        location.replace('index.html');
+                    });
+                } else {
+                    resetIdleTimer(); // False positive, recalculate
+                }
+            };
 
-// Global Fullscreen Toggle
-window.toggleFullScreen = function () {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-};
+            const resetIdleTimer = () => {
+                lastActivity = Date.now();
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(logoutUser, timeoutMs);
+            };
 
-// --- Global Telemetry Actions Logger ---
-window.logAction = async function (signature, subsystem, payload = {}, severity = 'info') {
-    try {
-        if (!window.sb) return;
-        const userId = localStorage.getItem('user_id');
+            // Events to reset the timer (throttle for performance)
+            let debounceTimer;
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+                window.addEventListener(evt, () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(resetIdleTimer, 500);
+                }, { passive: true });
+            });
+            resetIdleTimer();
 
-        // Asynchronously fire-and-forget log
-        window.sb.from('audit_logs').insert([{
-            user_id: userId || null,
-            signature: signature,
-            subsystem: subsystem,
-            payload: payload,
-            severity: severity
-        }]).then(({ error }) => {
-            if (error && error.code !== '42P01') console.warn("[Telemetry] Non-critical recording error", error);
-        });
-    } catch (e) {
-        console.warn("[Telemetry] Failed to record action", e);
-    }
-};
-
-// --- Global Session Guard & Live Heartbeat ---
-const startSessionGuard = () => {
-    const userId = localStorage.getItem('user_id');
-    const sessionId = localStorage.getItem('session_record_id');
-    if (!userId || !window.sb || userId === 'SYSTEM_SETUP_ID') return;
-
-    // 1. Ensure marked online initially (handles rapid page refreshes seamlessly)
-    window.sb.from('users').update({ is_online: true, updated_at: new Date().toISOString() }).eq('user_id', userId);
-
-    // 2. Establish Native Supabase Realtime Presence Channel
-    window.presenceChannel = window.sb.channel('global:presence_mesh', {
-        config: { presence: { key: userId } }
-    });
-
-    window.presenceChannel
-        .on('presence', { event: 'join' }, () => {
-            // Someone came online! Instant trigger to update any visible grids
-            if (typeof window.fetchUsers === 'function') window.fetchUsers();
-            if (typeof window.fetchAndRenderSessions === 'function') window.fetchAndRenderSessions(false);
-        })
-        .on('presence', { event: 'leave' }, () => {
-            // Someone disconnected or closed their tab! Instant trigger
-            if (typeof window.fetchUsers === 'function') window.fetchUsers();
-            if (typeof window.fetchAndRenderSessions === 'function') window.fetchAndRenderSessions(false);
-        })
-        .subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-                await window.presenceChannel.track({
-                    online_at: new Date().toISOString(),
-                    user_id: userId
-                });
+        } catch (err) {
+            if (err.message !== "[POLICY] System Locked") {
+                console.warn("[SystemPolicies] Error:", err);
             }
-        });
+        }
+    };
 
-    // 3. Relaxed Heartbeat (Health Ping only - every 30 seconds)
-    // Security status (Suspension/Revocation) is now handled via Realtime in supabase-config.js
-    setInterval(async () => {
+    // --- GLOBAL DATE/TIME FORMATTER ---
+    window.formatDateTime = (isoString) => {
+        if (!isoString) return 'N/A';
+        const config = window.systemConfig || {};
+        const date = new Date(isoString);
+
+        // Fallback options
+        const locale = 'en-US';
+        const tz = config.timezone === 'UTC+8' ? 'Asia/Singapore' : (config.timezone === 'UTC-5' ? 'America/New_York' : 'UTC');
+        const hc = config.time_format === '12h' ? 'h12' : 'h23';
+
         try {
-            // Heartbeat: Ping 'updated_at' so the master node knows the user is breathing
-            if (userId && window.sb) {
-                await window.sb.from('users').update({
-                    updated_at: new Date().toISOString()
-                }).eq('user_id', userId);
-            }
+            return date.toLocaleString(locale, {
+                timeZone: tz,
+                hourCycle: hc,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).replace(/\//g, '-');
         } catch (e) {
-            console.debug("[Session Guard] Heartbeat jitter:", e);
+            return date.toISOString().replace('T', ' ').split('.')[0];
         }
-    }, 30000);
-};
+    };
 
-tart the guard if Supabase is initialized
-t verifySB = setInterval(() => {
-    window.sb) {
-    rInterval(verifySB);
-    tSessionGuard();
-    
-00);
+    // Global Fullscreen Toggle
+    window.toggleFullScreen = function () {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    };
+
+    // --- Global Telemetry Actions Logger ---
+    window.logAction = async function (signature, subsystem, payload = {}, severity = 'info') {
+        try {
+            if (!window.sb) return;
+            const userId = localStorage.getItem('user_id');
+
+            // Asynchronously fire-and-forget log
+            window.sb.from('audit_logs').insert([{
+                user_id: userId || null,
+                signature: signature,
+                subsystem: subsystem,
+                payload: payload,
+                severity: severity
+            }]).then(({ error }) => {
+                if (error && error.code !== '42P01') console.warn("[Telemetry] Non-critical recording error", error);
+            });
+        } catch (e) {
+            console.warn("[Telemetry] Failed to record action", e);
+        }
+    };
+
+    // --- Global Session Guard & Live Heartbeat ---
+    const startSessionGuard = () => {
+        const userId = localStorage.getItem('user_id');
+        const sessionId = localStorage.getItem('session_record_id');
+        if (!userId || !window.sb || userId === 'SYSTEM_SETUP_ID') return;
+
+        // 1. Ensure marked online initially (handles rapid page refreshes seamlessly)
+        window.sb.from('users')
+            .update({ is_online: true, updated_at: new Date().toISOString() })
+            .eq('user_id', userId)
+            .then(({ error }) => {
+                if (error) console.error("[Guard] Initial online update failed:", error);
+                else console.info("[Guard] Presence confirmed for user:", userId);
+            });
+
+        // 2. Establish Native Supabase Realtime Presence Channel
+        window.presenceChannel = window.sb.channel('global:presence_mesh', {
+            config: { presence: { key: userId } }
+        });
+
+        window.presenceChannel
+            .on('presence', { event: 'join' }, () => {
+                console.log("[Presence] Peer discovered. Refreshing interfaces...");
+                if (typeof window.fetchUsers === 'function') window.fetchUsers();
+                if (typeof window.fetchAndRenderSessions === 'function') window.fetchAndRenderSessions();
+            })
+            .on('presence', { event: 'leave' }, () => {
+                console.log("[Presence] Peer disconnected. Syncing registry...");
+                if (typeof window.fetchUsers === 'function') window.fetchUsers();
+                if (typeof window.fetchAndRenderSessions === 'function') window.fetchAndRenderSessions();
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await window.presenceChannel.track({
+                        online_at: new Date().toISOString(),
+                        user_id: userId
+                    });
+                }
+            });
+
+        // 3. Relaxed Heartbeat (Health Ping only - every 30 seconds)
+        setInterval(async () => {
+            try {
+                if (userId && window.sb) {
+                    await window.sb.from('users').update({
+                        updated_at: new Date().toISOString()
+                    }).eq('user_id', userId);
+                }
+            } catch (e) {
+                console.debug("[Session Guard] Heartbeat jitter:", e);
+            }
+        }, 30000);
+    };
+
+    // Start the guard if Supabase is initialized
+    const verifySB = setInterval(() => {
+        if (window.sb) {
+            clearInterval(verifySB);
+            startSessionGuard();
+        }
+    }, 500);
 
     // --- Browser Tab Closure Detection (Unload) ---
     window.isNavigatingInternal = false;
@@ -802,7 +857,11 @@ t verifySB = setInterval(() => {
             // Returned to tab, ping the database to ensure timestamps are fresh
             const userId = localStorage.getItem('user_id');
             if (userId && window.sb) {
-                window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId).catch(() => { });
+                try {
+                    window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId);
+                } catch (e) {
+                    console.debug("[Visibility] Timestamp sync failed (soft error)");
+                }
             }
         }
     });
@@ -870,3 +929,4 @@ t verifySB = setInterval(() => {
             Swal.fire('Error', 'Could not open job panel.', 'error');
         }
     }
+}); // End of DOMContentLoaded

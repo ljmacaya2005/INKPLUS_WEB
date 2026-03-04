@@ -581,12 +581,28 @@
                     })
                     .subscribe();
 
-                // 7. Auto-Initialization Case
+                // 7. Auto-Initialization Case (System Setup & Fresh Access)
                 const initMonitor = setInterval(async () => {
                     const { count, error } = await window.sb.from('ip_allowlist').select('*', { count: 'exact', head: true });
                     if (!error && count === 0) {
                         clearInterval(initMonitor);
-                        await window.sb.from('ip_allowlist').insert([{ ip_address: ipAddress, device_id: deviceId, is_active: true }]);
+
+                        // Use Admin Client to bypass RLS during initial setup
+                        const adminSb = window.getSupabaseAdmin();
+                        if (adminSb) {
+                            console.info("[Security] Provisioning initial administrator terminal...");
+                            const { error: insertErr } = await adminSb.from('ip_allowlist').insert([{
+                                ip_address: ipAddress,
+                                device_id: deviceId,
+                                is_active: true
+                            }]);
+
+                            if (insertErr) {
+                                console.error("[Security] Failed to provision device:", insertErr);
+                                return;
+                            }
+                        }
+
                         window.location.replace('login.html');
                     }
                 }, 1500);
