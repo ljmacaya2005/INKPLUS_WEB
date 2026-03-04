@@ -120,12 +120,7 @@ window.initGlobalSecurityMonitor = async function () {
                 const isRevoked = payload.eventType === 'DELETE' || (payload.new && payload.new.is_active === false);
                 if (isRevoked) {
                     console.error("[Security] TERMINAL ACCESS REVOKED REAL-TIME.");
-                    // Force complete purge
-                    window.sb.auth.signOut();
-                    localStorage.clear();
-                    // Clear cookie too
-                    document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    window.location.replace('index.html');
+                    window.forceLogout(true); // Pass 'true' to wipe terminal ID
                 }
             })
             .subscribe((status) => {
@@ -148,7 +143,7 @@ window.initGlobalSecurityMonitor = async function () {
 
                 if (isSuspended || isDisconnected) {
                     console.error("[Security] ACCESS REVOKED OR DISCONNECTED REAL-TIME.");
-                    forceLogout();
+                    window.forceLogout(false);
                 }
             })
             .subscribe();
@@ -167,7 +162,7 @@ window.initGlobalSecurityMonitor = async function () {
                     const isEnded = payload.eventType === 'DELETE' || (payload.new && payload.new.ended_at !== null);
                     if (isEnded) {
                         console.error("[Security] SESSION TERMINATED REAL-TIME.");
-                        forceLogout();
+                        window.forceLogout(false);
                     }
                 })
                 .subscribe();
@@ -192,30 +187,42 @@ window.initGlobalSecurityMonitor = async function () {
 
             if (isMe || isGlobalPurge) {
                 console.error("[Security] REMOTE TERMINATION SIGNAL VERIFIED. EXECUTING KICK-OUT.");
-                window.forceLogout();
+                window.forceLogout(false);
             }
         })
         .subscribe();
 }
 
-// --- GLOBAL RECOVERY HELPER (Accessible everywhere) ---
-window.forceLogout = async function () {
-    console.warn("[Security] System Disconnect Protocol: ACTIVATED.");
+// --- GLOBAL RECOVERY HELPER ---
+window.forceLogout = async function (wipeTerminal = false) {
+    console.warn("[Security] System Disconnect Protocol: ACTIVATED. WipeTerminal:", wipeTerminal);
 
-    // 1. Wipe all local data immediately
+    // Get terminal ID before wipe if we need to preserve it
+    const deviceId = window.getPersistentDeviceId();
+
+    // 1. Wipe local data
     localStorage.clear();
     sessionStorage.clear();
 
-    // 2. Kill cookies (Terminals)
-    document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-    // 3. Kill the Supabase Auth session
-    if (window.sb) {
-        window.sb.auth.signOut().catch(() => { });
+    // 2. Restore Terminal ID if NOT wiping
+    if (!wipeTerminal && deviceId) {
+        localStorage.setItem('inkplus_device_id', deviceId);
+        window.setCookie('inkplus_device_id', deviceId);
     }
 
-    // 4. Hard destructive redirect
-    window.location.replace('index.html?reason=security_revoked&t=' + Date.now());
+    // 3. Kill cookies only if wiping
+    if (wipeTerminal) {
+        document.cookie = "inkplus_device_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+
+    // 4. Kill the Supabase Auth session
+    if (window.sb) {
+        try { await window.sb.auth.signOut(); } catch (e) { }
+    }
+
+    // 5. Hard destructive redirect
+    const target = wipeTerminal ? 'index.html' : 'login.html';
+    window.location.replace(`${target}?reason=security_event&t=${Date.now()}`);
 };
 
 // 3. Fail-Safe Security Heartbeat (Fallback Polling)

@@ -574,8 +574,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         console.warn("Error during sign out DB update", e);
                     }
 
-                    localStorage.clear();
-                    window.location.replace('index.html');
+                    window.forceLogout(false);
                 }
             });
         }

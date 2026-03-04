@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <h1 class="fw-bold mb-3 tracking-widest text-uppercase">System Isolation Active</h1>
                     <p class="lead opacity-75 mb-5 font-monospace" style="max-width: 600px;">The INKPlus platform is currently under deep maintenance. Access has been restricted to Administrative nodes only.</p>
-                    <button class="btn btn-outline-danger btn-lg rounded-pill px-5 shadow-sm" onclick="localStorage.clear(); location.replace('index.html')">Return to Surface</button>
+                    <button class="btn btn-outline-danger btn-lg rounded-pill px-5 shadow-sm" onclick="window.forceLogout(false)">Return to Surface</button>
                     <div class="mt-5 small text-secondary">Node: ${config.system_id || 'PROD-CLUSTER'}</div>
                 </div>
             `;
@@ -609,8 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         timerProgressBar: true
                     }).then(() => {
                         window.isNavigatingInternal = false;
-                        localStorage.clear();
-                        location.replace('index.html');
+                        window.forceLogout(false);
                     });
                 } else {
                     resetIdleTimer(); // False positive, recalculate

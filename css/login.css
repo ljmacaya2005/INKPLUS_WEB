@@ -1383,8 +1383,61 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:hover {
 	}
 
 	.login-card {
-		width: 90%;
+		width: 100%;
 		max-width: 350px;
+	}
+
+	.login-left {
+		padding: 1.25rem !important;
+	}
+
+	.login-face {
+		border-radius: 24px !important;
+	}
+
+	/* Prevent hard lockout by 100vh on mobile */
+	body,
+	main.login-wrapper {
+		height: auto !important;
+		min-height: 100vh !important;
+		overflow-y: auto !important;
+	}
+
+	main.login-wrapper {
+		padding: 2rem 1rem 5rem 1rem !important;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.login-card {
+		margin: 0 auto;
+	}
+
+	.login-left .brand img {
+		max-width: 100px !important;
+	}
+
+	.tracker-shortcut {
+		padding: 0.5rem 0.75rem !important;
+		border-radius: 12px !important;
+	}
+
+	.main-headline {
+		font-size: 1.75rem !important;
+	}
+
+	.desc {
+		font-size: 0.85rem !important;
+		margin-bottom: 1rem !important;
+	}
+
+	.form-label {
+		font-size: 0.8rem !important;
+	}
+
+	.form-control {
+		font-size: 14px !important;
+		padding: 10px 12px !important;
 	}
 }
 
