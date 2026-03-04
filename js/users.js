@@ -1013,7 +1013,359 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
 
+        // --- IP ALLOWLIST MANAGEMENT ---
+        const fetchAllowlist = async () => {
+            const listBody = document.getElementById('allowlist-list-body');
+            if (!listBody) return;
+
+            listBody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border spinner-border-sm text-info me-2"></div>Loading Allowlist...</td></tr>`;
+
+            try {
+                const { data, error } = await window.sb
+                    .from('ip_allowlist')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    listBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No IP addresses allowlisted yet.</td></tr>`;
+                    return;
+                }
+
+                listBody.innerHTML = data.map(item => `
+                    <tr class="animate__animated animate__fadeIn">
+                        <td><code class="text-primary fw-bold" style="font-size: 0.95rem;">${item.ip_address}</code></td>
+                        <td><small class="text-secondary font-monospace text-truncate-monospace" title="${item.device_id}">${item.device_id}</small></td>
+                        <td><small class="text-muted">${new Date(item.created_at).toLocaleString()}</small></td>
+                        <td>
+                            <span class="badge ${item.is_active ? 'bg-success' : 'bg-danger'} bg-opacity-75 rounded-pill px-3" style="font-size: 0.75rem;">
+                                ${item.is_active ? 'Authorized Access' : 'Access Restricted'}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-sm btn-outline-${item.is_active ? 'warning' : 'success'} rounded-circle d-flex align-items-center justify-content-center" 
+                                    onclick="toggleAllowlistStatus(${item.id}, ${item.is_active})" title="${item.is_active ? 'Revoke Access' : 'Authorize Access'}" style="width:32px; height:32px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" onclick="deleteAllowlistEntry(${item.id})" title="Remove Device" style="width:32px; height:32px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Fetch Allowlist Error:', err);
+                listBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Security table mismatch or network error.</td></tr>`;
+            }
+        };
+
+        const allowlistTabElement = document.getElementById('allowlist-tab');
+        if (allowlistTabElement) {
+            allowlistTabElement.addEventListener('click', () => {
+                setTimeout(fetchAllowlist, 100);
+            });
+        }
+
+        window.toggleAllowlistStatus = async (id, currentStatus) => {
+            try {
+                const { error } = await window.sb
+                    .from('ip_allowlist')
+                    .update({ is_active: !currentStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                // Fire Telemetry Action
+                if (window.logAction) {
+                    window.logAction('ALLOWLIST_TOGGLED', 'system.security', { entry_id: id, active: !currentStatus }, 'warning');
+                }
+
+                fetchAllowlist();
+            } catch (err) {
+                Swal.fire('Sync Failed', err.message, 'error');
+            }
+        };
+
+        window.deleteAllowlistEntry = async (id) => {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Deauthorize Device?',
+                text: 'This terminal will be immediately blocked from the security gate bypassing logic.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Yes, Deauthorize',
+                background: 'var(--card-bg)',
+                color: 'var(--text-main)'
+            });
+
+            if (isConfirmed) {
+                try {
+                    const { error } = await window.sb
+                        .from('ip_allowlist')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    if (window.logAction) {
+                        window.logAction('ALLOWLIST_REMOVED', 'system.security', { entry_id: id }, 'critical');
+                    }
+
+                    fetchAllowlist();
+                } catch (err) {
+                    Swal.fire('Action Deleted', err.message, 'error');
+                }
+            }
+        };
+
+        // --- QR SCANNER ENGINE ---
+        let html5QrCode = null;
+        const SECURITY_KEY = 'inkplus-gate-key-2024';
+        let currentFacingMode = "environment";
+
+        window.startScanner = async () => {
+            const scannerModalElement = document.getElementById('scannerModal');
+            if (!scannerModalElement) return;
+
+            const scannerModalInstance = new bootstrap.Modal(scannerModalElement);
+            scannerModalInstance.show();
+
+            const config = {
+                fps: 15,
+                qrbox: { width: 280, height: 280 },
+                aspectRatio: 1.0
+            };
+
+            if (html5QrCode) {
+                try { await html5QrCode.stop(); } catch (e) { }
+            }
+
+            // Reset Modal View to Camera on Open
+            const camView = document.getElementById('camera-view');
+            const manView = document.getElementById('manual-view');
+            const toggleBtn = document.getElementById('toggleScanMode');
+            if (camView) camView.classList.remove('d-none');
+            if (manView) manView.classList.add('d-none');
+            if (toggleBtn) toggleBtn.textContent = 'Use Manual Entry';
+
+            html5QrCode = new Html5Qrcode("qr-reader");
+
+            const onScanSuccess = async (decodedText) => {
+                try {
+                    await html5QrCode.stop();
+                    document.getElementById('qr-reader-results').innerHTML = `<div class="spinner-border spinner-border-sm text-primary"></div> Authorizing...`;
+
+                    // Decrypt Payload
+                    const bytes = CryptoJS.AES.decrypt(decodedText, SECURITY_KEY);
+                    const rawString = bytes.toString(CryptoJS.enc.Utf8);
+                    if (!rawString) throw new Error("Decryption failed - Mismatched Security Token");
+
+                    const decryptedData = JSON.parse(rawString);
+                    const ip = decryptedData.i || decryptedData.ip; // handle both old and new
+                    const did = decryptedData.d || decryptedData.did;
+
+                    if (!ip || !did) throw new Error("Corrupted Gate Data");
+
+                    // Check if this device is already in the registry (using Device ID as the anchor)
+                    const { data: existing } = await window.sb
+                        .from('ip_allowlist')
+                        .select('id')
+                        .eq('device_id', did)
+                        .maybeSingle();
+
+                    if (existing) {
+                        // Update existing terminal record with the new authorized footprint
+                        await window.sb
+                            .from('ip_allowlist')
+                            .update({
+                                ip_address: ip,
+                                is_active: true,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', existing.id);
+                    } else {
+                        // Provision new terminal
+                        await window.sb.from('ip_allowlist').insert([{
+                            ip_address: ip,
+                            device_id: did,
+                            is_active: true
+                        }]);
+                    }
+
+                    if (window.logAction) {
+                        window.logAction('IP_ALLOWLIST_SCAN_AUTH', 'system.security', { ip: ip, device: did }, 'warning');
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terminal Authorized',
+                        text: `Terminal ${did} has been granted access.`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: 'var(--card-bg)',
+                        color: 'var(--text-main)'
+                    });
+
+                    scannerModalInstance.hide();
+                    fetchAllowlist();
+                } catch (err) {
+                    console.error('Scan Validation Error:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Unauthorized Code',
+                        text: err.message || 'The scanned QR code is either invalid or uses an outdated security protocol.',
+                        background: 'var(--card-bg)',
+                        color: 'var(--text-main)'
+                    });
+                    // Restart
+                    html5QrCode.start({ facingMode: currentFacingMode }, config, onScanSuccess);
+                }
+            };
+
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+                currentFacingMode = "environment";
+            } catch (err) {
+                console.warn("Rear camera failed, falling back to default:", err);
+                try {
+                    await html5QrCode.start({ facingMode: "user" }, config, onScanSuccess);
+                    currentFacingMode = "user";
+                } catch (err2) {
+                    const resultsEl = document.getElementById('qr-reader-results');
+                    if (resultsEl) resultsEl.innerHTML = `<span class="text-danger">Camera Access Denied or Missing</span> - Use Manual entry below.`;
+                }
+            }
+        };
+
+        // --- MANUAL AUTH HANDLER ---
+        window.handleManualAuth = async () => {
+            const input = document.getElementById('manual-qr-input');
+            const decodedText = input ? input.value.trim() : '';
+
+            if (!decodedText) {
+                Swal.fire({ icon: 'warning', title: 'Empty Token', text: 'Please paste the encrypted security token.', background: 'var(--card-bg)', color: 'var(--text-main)' });
+                return;
+            }
+
+            Swal.fire({ title: 'Authorizing...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: 'var(--card-bg)', color: 'var(--text-main)' });
+
+            try {
+                // Decrypt Payload
+                const bytes = CryptoJS.AES.decrypt(decodedText, SECURITY_KEY);
+                const rawString = bytes.toString(CryptoJS.enc.Utf8);
+                if (!rawString) throw new Error("Verification failed - Mismatched Security Token");
+
+                const decryptedData = JSON.parse(rawString);
+                const ip = decryptedData.i || decryptedData.ip;
+                const did = decryptedData.d || decryptedData.did;
+
+                if (!ip || !did) throw new Error("Corrupted Gate Data");
+
+                // Check for existing
+                const { data: existing } = await window.sb
+                    .from('ip_allowlist')
+                    .select('id')
+                    .eq('device_id', did)
+                    .maybeSingle();
+
+                if (existing) {
+                    await window.sb.from('ip_allowlist').update({ ip_address: ip, is_active: true, updated_at: new Date().toISOString() }).eq('id', existing.id);
+                } else {
+                    await window.sb.from('ip_allowlist').insert([{ ip_address: ip, device_id: did, is_active: true }]);
+                }
+
+                if (window.logAction) {
+                    window.logAction('IP_ALLOWLIST_MANUAL_AUTH', 'system.security', { ip: ip, device: did }, 'warning');
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Terminal Authorized',
+                    text: `Terminal ${did} has been granted access via manual token.`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-main)'
+                });
+
+                // Close Modal
+                const scannerModalElement = document.getElementById('scannerModal');
+                const scannerModalInstance = bootstrap.Modal.getInstance(scannerModalElement);
+                if (scannerModalInstance) scannerModalInstance.hide();
+
+                if (input) input.value = '';
+                fetchAllowlist();
+            } catch (err) {
+                console.error('Manual Validation Error:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unauthorized Code',
+                    text: err.message || 'The token is invalid.',
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-main)'
+                });
+            }
+        };
+
+        const toggleScanModeBtn = document.getElementById('toggleScanMode');
+        if (toggleScanModeBtn) {
+            toggleScanModeBtn.addEventListener('click', () => {
+                const camView = document.getElementById('camera-view');
+                const manView = document.getElementById('manual-view');
+                const camLabel = document.getElementById('switchCameraBtn');
+
+                if (camView && camView.classList.contains('d-none')) {
+                    camView.classList.remove('d-none');
+                    manView.classList.add('d-none');
+                    toggleScanModeBtn.textContent = 'Use Manual Entry';
+                    if (camLabel) camLabel.classList.remove('d-none');
+                    // Restart Camera
+                    window.startScanner();
+                } else {
+                    if (camView) camView.classList.add('d-none');
+                    if (manView) manView.classList.remove('d-none');
+                    toggleScanModeBtn.textContent = 'Use Camera Scanner';
+                    if (camLabel) camLabel.classList.add('d-none');
+                    // Stop Camera
+                    if (html5QrCode) {
+                        try { html5QrCode.stop(); } catch (e) { }
+                    }
+                }
+            });
+        }
+
+        const startScannerBtnElement = document.getElementById('startScannerBtn');
+        if (startScannerBtnElement) {
+            startScannerBtnElement.addEventListener('click', window.startScanner);
+        }
+
+        const switchCameraBtnElement = document.getElementById('switchCameraBtn');
+        if (switchCameraBtnElement) {
+            switchCameraBtnElement.addEventListener('click', async () => {
+                if (!html5QrCode) return;
+                currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+                try {
+                    await html5QrCode.stop();
+                    window.startScanner();
+                } catch (e) {
+                    console.error("Camera switch failed", e);
+                }
+            });
+        }
+
+        const scannerModalMainElement = document.getElementById('scannerModal');
+        if (scannerModalMainElement) {
+            scannerModalMainElement.addEventListener('hidden.bs.modal', () => {
+                if (html5QrCode) {
+                    try { html5QrCode.stop(); } catch (e) { }
+                }
+            });
+        }
+
     } catch (err) {
-        console.error("Init Error:", err);
+        console.error("Global Init Error:", err);
     }
 });

@@ -23,6 +23,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 	const initializeView = async () => {
 		await waitForSupabase();
 
+		// --- IP ALLOWLIST SECURITY GUARD (Real-Time + Fallback) ---
+		// The 'GlobalSecurityMonitor' in supabase-config.js handles INSTANT real-time detection.
+		// This serves as a secondary sanity check every 5 seconds.
+		const startSecurityGuard = async () => {
+			const deviceId = localStorage.getItem('inkplus_device_id');
+
+			const securityInterval = setInterval(async () => {
+				if (!deviceId) {
+					clearInterval(securityInterval);
+					window.location.replace('index.html');
+					return;
+				}
+
+				try {
+					const { data } = await window.sb
+						.from('ip_allowlist')
+						.select('is_active')
+						.eq('device_id', deviceId)
+						.maybeSingle();
+
+					if (data === null || data.is_active === false) {
+						console.warn("[Security] Terminal Access Revoked. Redirecting...");
+						clearInterval(securityInterval);
+						window.location.replace('index.html');
+					}
+				} catch (err) { }
+			}, 5000);
+		};
+
+		// Run initial check and then start the persistent guard
+		const initialCheck = await window.sb
+			.from('ip_allowlist')
+			.select('is_active')
+			.eq('device_id', localStorage.getItem('inkplus_device_id'))
+			.maybeSingle();
+
+		if (!initialCheck.data || !initialCheck.data.is_active) {
+			window.location.replace('index.html');
+			return;
+		}
+
+		startSecurityGuard();
+
 		let splashEnabled = true;
 		let maintenanceMode = false;
 
@@ -287,8 +330,17 @@ async function handleLogin(event) {
 
 		// Update user online status & Session Audit
 		try {
+			// Fetch current IP for session tracking
+			let currentIp = 'Unknown';
+			try {
+				const ipResponse = await fetch('https://api.ipify.org?format=json');
+				const ipData = await ipResponse.json();
+				currentIp = ipData.ip;
+			} catch (e) { }
+
 			await window.sb.from('users').update({
 				is_online: true,
+				current_ip: currentIp,
 				updated_at: new Date().toISOString()
 			}).eq('user_id', data.user.id);
 

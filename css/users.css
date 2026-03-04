@@ -197,3 +197,119 @@
         border-radius: 8px;
     }
 }
+
+/* --- QR Scanner Modal Styling --- */
+#qr-reader {
+    border: none !important;
+    background: #000 !important;
+}
+
+#qr-reader__scan_region {
+    background: #000 !important;
+}
+
+#qr-reader__dashboard {
+    padding: 1rem !important;
+    background: var(--card-bg) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+#qr-reader__dashboard_section_csr button {
+    background: var(--primary-color) !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 0.5rem 1.2rem !important;
+    border-radius: 50px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    margin: 5px !important;
+    box-shadow: 0 4px 12px rgba(74, 144, 164, 0.3) !important;
+}
+
+.glass-modal {
+    background: rgba(20, 20, 20, 0.85) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="light"] .glass-modal {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.font-monospace {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important;
+}
+
+/* --- Scalability & Table Protection --- */
+.glass-table-container {
+    border-radius: 20px;
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.01);
+    width: 100%;
+}
+
+#allowlist-table {
+    table-layout: fixed;
+    min-width: 800px;
+    /* Ensures table doesn't collapse too much, triggers horizontal scroll instead of stretching container */
+}
+
+#allowlist-table th:nth-child(1) {
+    width: 20%;
+}
+
+/* IP Address */
+#allowlist-table th:nth-child(2) {
+    width: 30%;
+}
+
+/* Device ID */
+#allowlist-table th:nth-child(3) {
+    width: 20%;
+}
+
+/* Authorized On */
+#allowlist-table th:nth-child(4) {
+    width: 15%;
+}
+
+/* Status */
+#allowlist-table th:nth-child(5) {
+    width: 15%;
+}
+
+/* Actions */
+
+.text-truncate-monospace {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .dashboard-card {
+        padding: 1.5rem !important;
+    }
+
+    .glass-table-container {
+        border-radius: 12px;
+    }
+
+    #allowlist-table th,
+    #allowlist-table td {
+        padding: 1rem 0.75rem;
+    }
+}
+
+/* Ensure consistent card sizing across all tabs */
+.tab-pane .dashboard-card {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}

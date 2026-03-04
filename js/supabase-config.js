@@ -14,6 +14,10 @@ window.SUPABASE_SERVICE_KEY = SUPABASE_SERVICE_KEY; // Temporarily hardcoded for
 const APP_ENCRYPTION_KEY = 'inkplus_secure_pass_key_2024';
 window.APP_ENCRYPTION_KEY = APP_ENCRYPTION_KEY;
 
+// Security Gate Key for Terminal Authorization (QR / Manual Token)
+const SECURITY_KEY = 'inkplus-gate-key-2024';
+window.SECURITY_KEY = SECURITY_KEY;
+
 window.sb = null;
 
 function initSupabase() {
@@ -28,6 +32,13 @@ function initSupabase() {
     if (client) {
         window.sb = client;
         console.log("Supabase Initialized Successfully");
+
+        // --- GLOBAL REAL-TIME SECURITY ENFORCER ---
+        // Runs on every page to ensure instant revocation detection
+        if (typeof window.initGlobalSecurityMonitor === 'function') {
+            window.initGlobalSecurityMonitor();
+        }
+
         return true;
     } else {
         console.log("Supabase SDK not found yet...");
@@ -45,3 +56,74 @@ if (!initSupabase()) {
         retries++;
     }, 200);
 }
+
+// --- GLOBAL REAL-TIME SECURITY MONITOR ---
+window.initGlobalSecurityMonitor = async function () {
+    const isGate = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+    const deviceId = localStorage.getItem('inkplus_device_id');
+    const userId = localStorage.getItem('user_id');
+    const sessionId = localStorage.getItem('session_record_id');
+
+    if (!window.sb) return;
+
+    // 1. Terminal Authorization Guard (Required for ALL pages except the Gate itself)
+    if (!isGate && deviceId) {
+        window.sb
+            .channel('terminal-security')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'ip_allowlist',
+                filter: `device_id=eq.${deviceId}`
+            }, (payload) => {
+                const isRevoked = payload.eventType === 'DELETE' || (payload.new && payload.new.is_active === false);
+                if (isRevoked) {
+                    console.error("[Security] TERMINAL ACCESS REVOKED REAL-TIME.");
+                    localStorage.clear();
+                    window.location.replace('index.html');
+                }
+            })
+            .subscribe();
+    }
+
+    // 2. Account & Session Guard (Only if logged in)
+    if (userId && userId !== 'SYSTEM_SETUP_ID') {
+        // Watch for User Suspension
+        window.sb
+            .channel('user-security')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'users',
+                filter: `user_id=eq.${userId}`
+            }, (payload) => {
+                if (payload.new && payload.new.is_active === false) {
+                    console.error("[Security] ACCOUNT SUSPENDED REAL-TIME.");
+                    window.sb.auth.signOut();
+                    localStorage.clear();
+                    window.location.replace('index.html');
+                }
+            })
+            .subscribe();
+
+        // Watch for Session Termination
+        if (sessionId) {
+            window.sb
+                .channel('session-security')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'login_sessions',
+                    filter: `id=eq.${sessionId}`
+                }, (payload) => {
+                    if (payload.new && payload.new.ended_at !== null) {
+                        console.error("[Security] SESSION TERMINATED REAL-TIME.");
+                        window.sb.auth.signOut();
+                        localStorage.clear();
+                        window.location.replace('index.html');
+                    }
+                })
+                .subscribe();
+        }
+    }
+};

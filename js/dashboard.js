@@ -68,6 +68,67 @@ document.addEventListener('DOMContentLoaded', () => {
         const sb = await waitForSupabase();
         if (!sb) return;
 
+        // --- IP ALLOWLIST SECURITY CHECK ---
+        // --- IP ALLOWLIST SECURITY CHECK (TERMINAL PERSISTENCE) ---
+        const checkIPAllowlist = async () => {
+            const deviceId = localStorage.getItem('inkplus_device_id');
+            if (!deviceId) return false;
+
+            try {
+                // 1. Get the current network footprint
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const currentIp = ipData.ip;
+
+                // 2. Fetch the registration status based on ONLY the Device ID for persistence
+                const { data, error } = await sb
+                    .from('ip_allowlist')
+                    .select('*')
+                    .eq('device_id', deviceId)
+                    .maybeSingle();
+
+                if (error || !data || !data.is_active) {
+                    console.warn("[Security] Terminal not registered or access revoked for device:", deviceId);
+                    return false;
+                }
+
+                // 3. SEAMLESS SYNC: If the IP has shifted (dynamic network), update the registry and user record
+                if (data.ip_address !== currentIp) {
+                    console.info("[Security] Terminal network shift detected. Synchronizing active footprint...");
+
+                    // Update the IP in the Allowlist Table
+                    await sb.from('ip_allowlist')
+                        .update({
+                            ip_address: currentIp,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', data.id);
+
+                    // Also update the User's presence record if possible
+                    const currentUid = localStorage.getItem('user_id');
+                    if (currentUid && currentUid !== 'SYSTEM_SETUP_ID') {
+                        await sb.from('users')
+                            .update({
+                                current_ip: currentIp,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('user_id', currentUid);
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                // Resilience: In case of API failures or network jitters, we allow the device if it's strictly a network issue
+                return true;
+            }
+        };
+
+        const isAuthorized = await checkIPAllowlist();
+        if (!isAuthorized && localStorage.getItem('user_id') !== 'SYSTEM_SETUP_ID') {
+            window.location.replace('index.html');
+            return;
+        }
+
         // 1. Get User ID
         let userId = localStorage.getItem('user_id');
         if (!userId) {
@@ -621,37 +682,20 @@ const startSessionGuard = () => {
             }
         });
 
-    // 3. Continuous Heartbeat (Polls every 15 seconds)
+    // 3. Relaxed Heartbeat (Health Ping only - every 30 seconds)
+    // Security status (Suspension/Revocation) is now handled via Realtime in supabase-config.js
     setInterval(async () => {
         try {
-            // Fetch account active status
-            const { data: userData } = await window.sb.from('users').select('is_active').eq('user_id', userId).single();
-
-            // Fetch precise session status 
-            let sessionTerminated = false;
-            if (sessionId) {
-                const { data: sessData } = await window.sb.from('login_sessions').select('ended_at').eq('id', sessionId).single();
-                if (sessData && sessData.ended_at !== null) {
-                    sessionTerminated = true; // An administrator explicitly killed this session record
-                }
-            }
-
-            // If the user's account was suspended (is_active: false) OR their specific session was killed
-            if ((userData && userData.is_active === false) || sessionTerminated) {
-                console.warn("[Session Guard] Account terminated remotely or revoked. Executing strict logout.");
-
-                // If killed natively by admin session purge, ensure the auth is dropped locally
-                await window.sb.auth.signOut();
-                localStorage.clear();
-                window.location.replace('index.html');
-            } else {
-                // Ping 'updated_at' so the master node knows the user is breathing
-                window.sb.from('users').update({ updated_at: new Date().toISOString() }).eq('user_id', userId);
+            // Heartbeat: Ping 'updated_at' so the master node knows the user is breathing
+            if (userId && window.sb) {
+                await window.sb.from('users').update({
+                    updated_at: new Date().toISOString()
+                }).eq('user_id', userId);
             }
         } catch (e) {
-            // Ignore minor network hiccups
+            console.debug("[Session Guard] Heartbeat jitter:", e);
         }
-    }, 15000);
+    }, 30000);
 };
 
 // Start the guard if Supabase is initialized

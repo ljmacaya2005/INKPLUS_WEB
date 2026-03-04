@@ -4,337 +4,528 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>INKPlus — Login</title>
+    <title>INKPlus — Security Gate</title>
     <link rel="icon" type="image/x-icon" href="assets/logo2.png">
+
     <!-- Bootstrap 5.3 CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts - Inter -->
     <link href="css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/animate.min.css" />
 
     <style>
-        /* Premium Tracker-Matched Glassmorphism Ecosystem */
-        @keyframes loginEntrance {
-            0% {
-                opacity: 0;
-                transform: translateY(50px) scale(0.96);
+        :root {
+            --primary-color: #4A90A4;
+            --primary-glow: rgba(74, 144, 164, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1a1a1a, #000);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        [data-theme="light"] body {
+            background: radial-gradient(circle at top right, #f8f9fa, #e9ecef);
+            color: #333;
+        }
+
+        .gate-container {
+            max-width: 450px;
+            width: 90%;
+            z-index: 10;
+        }
+
+        .security-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .security-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, var(--primary-color), transparent 30%);
+            animation: rotate 10s linear infinite;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
             }
 
-            60% {
-                opacity: 0.8;
-                transform: translateY(-5px) scale(1.01);
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .brand-logo {
+            max-width: 120px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 10px var(--primary-glow));
+        }
+
+        .qr-wrapper {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 24px;
+            display: inline-block;
+            margin: 1.5rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .qr-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        #qrcode img {
+            max-width: 200px;
+            height: auto;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            background: rgba(74, 144, 164, 0.1);
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(74, 144, 164, 0.2);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--primary-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
             }
 
             100% {
+                transform: scale(1);
                 opacity: 1;
-                transform: translateY(0) scale(1);
             }
         }
 
-        .login-card {
-            visibility: visible !important;
-            animation: loginEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-            overflow: visible;
+        .gate-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
         }
 
-        /* Apply Tracker Glass engine to the actual 3D inner faces */
-        .login-face {
-            border-radius: 28px !important;
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(35px) saturate(200%) !important;
-            -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 50px rgba(74, 144, 164, 0.2) !important;
-            transition: background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease !important;
+        .gate-desc {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            line-height: 1.6;
         }
 
-        [data-theme="light"] .login-face {
-            background: rgba(255, 255, 255, 0.8) !important;
-            border: 1px solid rgba(255, 255, 255, 0.5) !important;
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 0 50px rgba(74, 144, 164, 0.4) !important;
+        .info-island {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .login-card:hover {
-            transform: translateY(-4px) !important;
+        [data-theme="light"] .info-island {
+            background: rgba(0, 0, 0, 0.03);
         }
 
-        .login-card:hover .login-face {
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 80px rgba(74, 144, 164, 0.55) !important;
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
         }
 
-        [data-theme="light"] .login-card:hover .login-face {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 80px rgba(74, 144, 164, 0.6) !important;
+        .info-item:last-child {
+            margin-bottom: 0;
         }
 
-        /* Premium Tracker Shortcut Styling */
-        .tracker-shortcut {
-            background: rgba(74, 144, 164, 0.05);
-            border: 1px solid rgba(74, 144, 164, 0.15);
-            position: relative;
-            overflow: hidden;
-            text-decoration: none;
-            cursor: pointer;
+        .info-label {
+            opacity: 0.6;
         }
 
-        .tracker-shortcut::before {
-            content: '';
+        .info-value {
+            font-weight: 600;
+        }
+
+        /* Floating particles effect */
+        .particles {
             position: absolute;
             top: 0;
-            left: -100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
         }
 
-        .tracker-shortcut:hover::before {
-            left: 100%;
+        .version-island {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 100;
         }
 
-        .tracker-shortcut:hover {
-            background: rgba(74, 144, 164, 0.12);
-            border-color: rgba(74, 144, 164, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.1), 0 0 15px rgba(74, 144, 164, 0.2);
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
         }
 
-        .icon-box-tracker {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, rgba(74, 144, 164, 0.2), rgba(53, 118, 136, 0.1));
-            color: var(--primary-color, #4A90A4);
-            border: 1px solid rgba(74, 144, 164, 0.2);
-            transition: all 0.3s ease;
-        }
+        @media (max-width: 576px) {
+            .security-card {
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
+            }
 
-        .tracker-shortcut:hover .icon-box-tracker {
-            background: var(--primary-color, #4A90A4);
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(74, 144, 164, 0.3);
-        }
+            .brand-logo {
+                max-width: 100px;
+                margin-bottom: 1.5rem;
+            }
 
-        .tracker-shortcut:hover .icon-arrow-tracker {
-            transform: translateX(4px);
-        }
+            .gate-title {
+                font-size: 1.25rem;
+            }
 
-        [data-theme="light"] .tracker-shortcut {
-            background: rgba(74, 144, 164, 0.04);
-            border-color: rgba(74, 144, 164, 0.2);
-        }
+            .qr-wrapper {
+                padding: 1rem;
+            }
 
-        [data-theme="light"] .tracker-shortcut::before {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        }
-
-        [data-theme="light"] .tracker-shortcut:hover {
-            box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.05), 0 0 20px rgba(74, 144, 164, 0.15);
+            #qrcode img {
+                max-width: 160px;
+            }
         }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/animate.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="js/sweetalert2.all.min.js"></script>
 </head>
 
 <body>
-    <div id="splash" role="dialog" aria-label="Loading INKPlus" style="display: none;">
-        <div class="splash-content text-center">
-            <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid mb-3 splash-logo">
-            <div class="splash-progress-container mx-auto">
-                <div class="splash-progress-bar"></div>
+    <div class="gate-container">
+        <div class="security-card animate__animated animate__zoomIn">
+            <img src="assets/logo1.png" alt="INKPlus Logo" class="brand-logo">
+
+            <div class="status-badge">
+                <div class="pulse-dot"></div>
+                Awaiting Authorization
             </div>
-        </div>
-    </div>
 
+            <h1 class="gate-title">Security Gateway</h1>
+            <p class="gate-desc">Please scan this QR code using an authorized administrator device to grant access to
+                this workstation.</p>
 
-
-    <main class="login-wrapper min-vh-100">
-        <div class="login-card animate__animated animate__fadeInUp" id="loginCard">
-            <div class="login-flipper" id="loginFlipper">
-                <!-- Front Face: Login Form -->
-                <div class="login-face login-front">
-                    <div class="login-left">
-                        <div class="brand mb-3 user-select-none">
-                            <img src="assets/logo1.png" alt="INKPlus Logo" class="img-fluid user-select-none"
-                                style="max-width: 125px;" draggable="false">
-                        </div>
-                        <p class="text-center desc mb-3 user-select-none" style="font-size: 0.9rem;">Sign in to
-                            continue.</p>
-
-                        <form id="loginForm" onsubmit="handleLogin(event)">
-                            <div class="mb-3">
-                                <label for="email" class="form-label user-select-none mb-1">Email Address</label>
-                                <input id="email" name="email" type="email" class="form-control"
-                                    placeholder="name@company.com" maxlength="50" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="password" class="form-label user-select-none mb-1">Password</label>
-                                <div class="password-wrapper position-relative">
-                                    <input id="password" name="password" type="password" class="form-control pe-5"
-                                        placeholder="••••••••" maxlength="20" autocomplete="off">
-                                    <button type="button"
-                                        class="password-toggle btn p-0 border-0 position-absolute end-0 top-50 translate-middle-y me-3"
-                                        id="passwordToggle" aria-label="Show password"
-                                        onclick="window.togglePassword('password', this)">
-                                        <svg class="eye-icon eye-hidden" xmlns="http://www.w3.org/2000/svg" width="18"
-                                            height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path
-                                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                                            </path>
-                                            <line x1="1" y1="1" x2="23" y2="23"></line>
-                                        </svg>
-                                        <svg class="eye-icon eye-visible" xmlns="http://www.w3.org/2000/svg" width="18"
-                                            height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                            style="display: none;">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                            <circle cx="12" cy="12" r="3"></circle>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="forgot-password">
-                                    <a href="#" class="small" onclick="showForgot(event)">Forgot Password?</a>
-                                </div>
-                            </div>
-
-                            <div class="d-grid mb-3">
-                                <button class="btn btn-primary btn-lg primary py-2" type="submit">Sign in</button>
-                            </div>
-
-                            <!-- Beautiful Tracker Navigation Shortcut -->
-                            <a href="tracker.html"
-                                class="tracker-shortcut d-flex align-items-center p-2 mb-3 rounded-4 transition-all"
-                                aria-label="Track a Repair">
-                                <div
-                                    class="icon-box-tracker d-flex align-items-center justify-content-center rounded-circle mx-2 flex-shrink-0">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                </div>
-                                <div class="text-start pe-2">
-                                    <div class="fw-bold fs-6 tracking-tight mb-0"
-                                        style="color: var(--text-color); font-size: 0.95rem !important;">Track a Repair
-                                    </div>
-                                    <div class="fw-medium mt-0"
-                                        style="color: var(--desc-color); font-size: 0.68rem; opacity: 0.9;">Check
-                                        customer device status live</div>
-                                </div>
-                                <div class="ms-auto flex-shrink-0 icon-arrow-tracker transition-all pe-2"
-                                    style="color: var(--primary-color, #4A90A4);">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M5 12h14"></path>
-                                        <path d="m12 5 7 7-7 7"></path>
-                                    </svg>
-                                </div>
-                            </a>
-
-                            <div class="legal-text text-center">
-                                <p class="mb-0">By continuing, you acknowledge our <br>
-                                    <a href="#" class="text-info text-decoration-none fw-bold"
-                                        onclick="showTermsModal(event)">Terms of Service</a> &
-                                    <a href="#" class="text-info text-decoration-none fw-bold"
-                                        onclick="showPrivacyModal(event)">Privacy Policy</a>.
-                                </p>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Back Face: Success Message -->
-                <div class="login-face login-back">
-                    <div class="success-content text-center">
-                        <div class="success-icon mb-3">
-                            <svg id="loginSuccessSvg" xmlns="http://www.w3.org/2000/svg" width="64" height="64"
-                                viewBox="0 0 24 24" fill="none" stroke="#4A90A4" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="animate__animated animate__bounceIn">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <img id="loginSuccessAvatar" src="" alt="User Avatar"
-                                class="rounded-circle shadow-sm animate__animated animate__bounceIn d-none"
-                                style="width: 64px; height: 64px; object-fit: cover;">
-                        </div>
-                        <h3 class="fw-bold mb-2">Login Successful!</h3>
-                        <p class="text-muted" id="loginSuccessMessage">Welcome back, Administrator.</p>
-                        <div class="spinner-border text-primary mt-3" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="qr-wrapper animate__animated animate__fadeIn">
+                <div id="qrcode"></div>
             </div>
-        </div>
-    </main>
 
-    <div class="quick-dock glass-dock">
-        <div class="dock-content">
-            <button class="dock-btn" id="dockFull" title="Fullscreen" onclick="toggleFullScreen()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path
-                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                </svg>
-            </button>
-            <div class="dock-separator"></div>
-            <button class="dock-btn" id="fabRefresh" title="Refresh Page">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 4v6h-6"></path>
-                    <path d="M1 20v-6h6"></path>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                </svg>
-            </button>
-            <div class="dock-separator"></div>
-            <div class="dock-theme-wrapper">
-                <button class="dock-btn" id="quick-theme-btn" title="Theme">
-                    <!-- Icon injected by JS -->
-                </button>
-                <div class="dock-theme-menu">
-                    <button class="dock-theme-item" data-theme-value="light"><svg width="14" height="14"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg></button>
-                    <button class="dock-theme-item" data-theme-value="dark"><svg width="14" height="14"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                        </svg></button>
-                    <button class="dock-theme-item" data-theme-value="auto"><svg width="14" height="14"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                            <line x1="8" y1="21" x2="16" y2="21"></line>
-                            <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </svg></button>
+            <h2 class="gate-title mt-2">Workstation Terminal</h2>
+            <p class="text-secondary small mb-4">Requesting network access for node <br><span class="fw-bold"
+                    id="current-ip">Detecting IP...</span></p>
+
+            <div class="mt-4 pt-4 border-top border-white border-opacity-10 text-start">
+                <p class="small text-secondary mb-2 d-flex align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="me-2 text-info">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Manual Authorization Token
+                </p>
+                <div class="p-3 rounded-4 bg-black bg-opacity-25 border border-white border-opacity-10 text-break font-monospace mb-2"
+                    style="font-size: 0.65rem; color: #aaa; cursor: pointer; transition: all 0.2s;"
+                    id="manual-key-display" onclick="copyToken()">
+                    Generating token...
+                </div>
+                <p class="text-center text-secondary" style="font-size: 0.6rem;">Click to copy token</p>
+            </div>
+
+            <div class="info-island">
+                <div class="info-item">
+                    <span class="info-label">Current IP:</span>
+                    <span class="info-value" id="current-ip">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Device ID:</span>
+                    <span class="info-value text-truncate" style="max-width: 150px;"
+                        id="device-id">Initializing...</span>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="js/bootstrap.bundle.min.js"></script>
-
-
-
-    <script src="js/supabase-config.js" defer></script>
-    <script src="js/login.js?v=2.0" defer></script>
-    <script src="js/color-modes.js?v=2.0" defer></script>
 
     <div class="version-island">
-        <div class="status-dot"></div> <span class="version-label">System Version</span>
-        <span class="version-number">v4.2</span>
+        <div class="status-dot"></div> <span class="version-label">Gate Active</span>
+        <span class="version-number">v1.2-SEC</span>
     </div>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/color-modes.js"></script>
+
+    <script>
+        // Security Gate Logic
+        async function initGate() {
+            const waitForSb = () => new Promise(resolve => {
+                if (window.sb) return resolve();
+                const interval = setInterval(() => {
+                    if (window.sb) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+            });
+
+            await waitForSb();
+
+            try {
+                // 1. Get or Generate Device ID
+                let deviceId = localStorage.getItem('inkplus_device_id');
+                if (!deviceId) {
+                    deviceId = 'DEV-' + CryptoJS.lib.WordArray.random(16).toString();
+                    localStorage.setItem('inkplus_device_id', deviceId);
+                }
+                document.getElementById('device-id').textContent = deviceId;
+
+                // 2. Get Public IP
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const ipAddress = ipData.ip;
+                document.getElementById('current-ip').textContent = ipAddress;
+
+                // 3. SECURE HANDSHAKE: Persistent Terminal Verification
+                // We prioritize the Device ID for continuity, but keep IPs updated for audit trails
+                const { data: existing, error: checkError } = await window.sb
+                    .from('ip_allowlist')
+                    .select('*')
+                    .eq('device_id', deviceId)
+                    .eq('is_active', true)
+                    .maybeSingle();
+
+                if (existing) {
+                    console.info("[Security] Registered terminal detected. Synchronizing network footprint...");
+
+                    // If IP address has shifted (Common on dynamic/mobile networks), refresh the registry
+                    if (existing.ip_address !== ipAddress) {
+                        try {
+                            await window.sb
+                                .from('ip_allowlist')
+                                .update({
+                                    ip_address: ipAddress,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', existing.id);
+
+                            // Log the shift for security audit
+                            await window.sb.from('audit_logs').insert([{
+                                signature: 'TERMINAL_NETWORK_SHIFT',
+                                subsystem: 'system.security',
+                                payload: { device: deviceId, old_ip: existing.ip_address, new_ip: ipAddress, event: 'IP address updated for registered terminal' },
+                                severity: 'info'
+                            }]);
+                        } catch (e) {
+                            console.warn("Failed to sync new IP address, proceeding with cached credentials.");
+                        }
+                    }
+
+                    window.location.replace('login.html');
+                    return;
+                }
+
+                // --- SYSTEM INITIALIZATION OVERRIDE (Audio Request) ---
+                // Continuous high-frequency polling when the table is suspected to be empty
+                const startInitializationWatch = () => {
+                    const watchInt = setInterval(async () => {
+                        try {
+                            const { count, error: countErr } = await window.sb
+                                .from('ip_allowlist')
+                                .select('*', { count: 'exact', head: true });
+
+                            if (!countErr && count === 0) {
+                                clearInterval(watchInt);
+                                console.warn("SYSTEM SECURITY INITIALIZATION: Provisioning first terminal...");
+
+                                const { error: regErr } = await window.sb
+                                    .from('ip_allowlist')
+                                    .insert([{
+                                        ip_address: ipAddress,
+                                        device_id: deviceId,
+                                        is_active: true
+                                    }]);
+
+                                if (!regErr) {
+                                    try {
+                                        await window.sb.from('audit_logs').insert([{
+                                            signature: 'SECURITY_INIT_AUTO_AUTH',
+                                            subsystem: 'system.security',
+                                            payload: { ip: ipAddress, device: deviceId, event: 'First-Node Auto Registration (Polling)' },
+                                            severity: 'warning'
+                                        }]);
+                                    } catch (e) { }
+
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Primary Node Authorized',
+                                        text: 'Initialization detected. This node has been auto-provisioned as the primary administrative terminal.',
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: 'rgba(20, 20, 20, 0.95)',
+                                        color: '#fff'
+                                    }).then(() => {
+                                        window.location.replace('login.html');
+                                    });
+                                }
+                            }
+                        } catch (e) { }
+                    }, 500); // Poll every 500ms (Half-second high priority check)
+                };
+
+                startInitializationWatch();
+                // --- END OVERRIDE ---
+
+                // 4. Encrypt data for QR
+                const rawData = JSON.stringify({
+                    i: ipAddress,  // ip -> i (shorter)
+                    d: deviceId,   // did -> d (shorter)
+                    t: Date.now()  // ts -> t (shorter)
+                });
+                const encrypted = CryptoJS.AES.encrypt(rawData, SECURITY_KEY).toString();
+
+                // 5. Generate QR Code
+                new QRCode(document.getElementById("qrcode"), {
+                    text: encrypted,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                // 6. Display Manual Key
+                const keyDisplay = document.getElementById('manual-key-display');
+                if (keyDisplay) {
+                    keyDisplay.textContent = encrypted;
+                }
+
+                window.copyToken = () => {
+                    navigator.clipboard.writeText(encrypted);
+                    Swal.fire({
+                        toast: true,
+                        position: 'top',
+                        icon: 'success',
+                        title: 'Token copied to clipboard',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        background: 'rgba(20, 20, 20, 0.95)',
+                        color: '#fff'
+                    });
+                };
+
+                // 7. Setup Realtime Listener
+                window.sb
+                    .channel('ip_allowlist_changes')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'ip_allowlist',
+                        filter: `device_id=eq.${deviceId}`
+                    }, (payload) => {
+                        if (payload.new.is_active) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Access Granted',
+                                text: 'This device has been authorized.',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                background: 'rgba(20, 20, 20, 0.95)',
+                                color: '#fff'
+                            }).then(() => {
+                                window.location.replace('login.html');
+                            });
+                        }
+                    })
+                    .on('postgres_changes', {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'ip_allowlist',
+                        filter: `device_id=eq.${deviceId}`
+                    }, (payload) => {
+                        if (payload.new.is_active) {
+                            window.location.replace('login.html');
+                        }
+                    })
+                    .subscribe();
+
+            } catch (err) {
+                console.error('Gate Init Error:', err);
+                document.getElementById('current-ip').textContent = 'Error detecting IP';
+            }
+        }
+
+        initGate();
+    </script>
 </body>
 
 </html>
