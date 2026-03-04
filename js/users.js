@@ -170,11 +170,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden bg-body-tertiary transition-all" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='var(--bs-box-shadow-sm)';">
                                 <div class="card-body p-4 d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1">
                                             <div class="avatar-circle bg-${roleColor}-soft text-${roleColor} shadow-sm" style="width: 52px; height: 52px; font-size: 1.25rem;">${initials}</div>
-                                            <div>
-                                                <h6 class="fw-bold mb-1 tracking-tight text-main">${fullName}</h6>
-                                                <div class="small text-secondary fw-medium">${email}</div>
+                                            <div class="overflow-hidden flex-grow-1" style="min-width: 0;">
+                                                <h6 class="fw-bold mb-1 tracking-tight text-main text-truncate">${fullName}</h6>
+                                                <div class="small text-secondary fw-medium text-truncate">${email}</div>
                                             </div>
                                         </div>
                                         <div class="dropdown">
@@ -298,11 +298,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden bg-body-tertiary transition-all" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='var(--bs-box-shadow-sm)';">
                                 <div class="card-body p-4 d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <h6 class="fw-bold mb-1 tracking-tight text-main">${fullName}</h6>
-                                            <div class="small text-secondary fw-medium">${req.email}</div>
+                                        <div class="overflow-hidden flex-grow-1" style="min-width: 0;">
+                                            <h6 class="fw-bold mb-1 tracking-tight text-main text-truncate">${fullName}</h6>
+                                            <div class="small text-secondary fw-medium text-truncate">${req.email}</div>
                                         </div>
-                                        <span class="badge ${badgeClass} shadow-sm px-3 py-2 bg-opacity-75 rounded-pill">${badgeText}</span>
+                                        <span class="badge ${badgeClass} shadow-sm px-3 py-2 bg-opacity-75 rounded-pill flex-shrink-0 ms-2">${badgeText}</span>
                                     </div>
                                     
                                     <div class="mb-4">

@@ -313,3 +313,39 @@
     display: flex;
     flex-direction: column;
 }
+
+/* More Compact User Card Layout */
+#user-list-grid .card-body,
+#requests-list-grid .card-body {
+    padding: 1.25rem !important;
+    /* Reduced from default p-4 */
+}
+
+#user-list-grid .mb-4,
+#requests-list-grid .mb-4 {
+    margin-bottom: 0.75rem !important;
+    /* Tightened margins */
+}
+
+#user-list-grid .avatar-circle,
+#requests-list-grid .avatar-circle {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1rem !important;
+}
+
+#user-list-grid .role-badge {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.7rem;
+}
+
+.text-main {
+    color: var(--text-main);
+}
+
+/* Global Truncation Helpers */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
