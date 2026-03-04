@@ -65,13 +65,31 @@ body.swal2-shown {
 .sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
-    /* Prevent shrinking */
     flex-shrink: 0;
-    /* Lock width */
+    height: 100vh;
+    position: sticky;
+    top: 0;
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--glass-border);
     transition: width var(--transition-speed);
     z-index: 1000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .sidebar-glass {
@@ -377,6 +395,9 @@ div:where(.swal2-container) button:where(.swal2-styled):hover {
 @media (max-width: 992px) {
     .sidebar {
         position: fixed;
+        top: 0;
+        bottom: 0;
+        height: 100vh !important;
         left: calc(var(--sidebar-width) * -1);
     }
 
