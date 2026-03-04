@@ -63,7 +63,7 @@ window.SECURITY_KEY = SECURITY_KEY;
 window.sb = null;
 
 // --- GLOBAL RECOVERY HELPER ---
-window.forceLogout = async function (wipeTerminal = false) {
+window.forceLogout = async function (wipeTerminal = false, customTarget = null) {
     console.warn("[Security] System Disconnect Protocol: ACTIVATED. WipeTerminal:", wipeTerminal);
 
     // Get terminal ID before wipe if we need to preserve it
@@ -90,7 +90,7 @@ window.forceLogout = async function (wipeTerminal = false) {
     }
 
     // 5. Hard destructive redirect
-    const target = wipeTerminal ? 'index.html' : 'login.html';
+    const target = customTarget || (wipeTerminal ? 'index.html' : 'login.html');
     window.location.replace(`${target}?reason=security_event&t=${Date.now()}`);
 };
 
@@ -117,7 +117,8 @@ window.initGlobalSecurityMonitor = async function () {
                 const { data: terminal } = await window.sb.from('ip_allowlist').select('is_active').eq('device_id', deviceId).maybeSingle();
                 if (!terminal || !terminal.is_active) {
                     console.warn("[Security] Terminal unauthorized on load.");
-                    window.forceLogout(true);
+                    const shouldWipe = !terminal; // Wipe only if record is GONE from DB
+                    window.forceLogout(shouldWipe, 'index.html');
                     return;
                 }
             } else {
@@ -152,10 +153,15 @@ window.initGlobalSecurityMonitor = async function () {
                 table: 'ip_allowlist',
                 filter: `device_id=eq.${deviceId}`
             }, (payload) => {
-                const isRevoked = payload.eventType === 'DELETE' || (payload.new && payload.new.is_active === false);
-                if (isRevoked) {
-                    console.error("[Security] TERMINAL ACCESS REVOKED REAL-TIME.");
-                    window.forceLogout(true); // Pass 'true' to wipe terminal ID
+                const isDeleted = payload.eventType === 'DELETE';
+                const isSuspended = payload.new && payload.new.is_active === false;
+
+                if (isDeleted) {
+                    console.error("[Security] TERMINAL DELETED REAL-TIME.");
+                    window.forceLogout(true, 'index.html');
+                } else if (isSuspended) {
+                    console.error("[Security] TERMINAL SUSPENDED REAL-TIME.");
+                    window.forceLogout(false, 'index.html');
                 }
             })
             .subscribe((status) => {
